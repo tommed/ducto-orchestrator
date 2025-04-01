@@ -7,11 +7,18 @@
 
 # Ducto Orchestrator
 
+[![CI](https://github.com/tommed/ducto-dsl/actions/workflows/ci.yml/badge.svg)](https://github.com/tommed/ducto-dsl/actions/workflows/ci.yml)
+
 > Lightweight, embeddable data-stream orchestrator using [Ducto-DSL](https://github.com/tommed/ducto-dsl)
 
 ---
 
 ## ✨ What is Ducto-Orchestrator?
+
+<p align="center">
+  <img alt="Graphical representation of Ducto manipulate streaming data in a system of pipes" 
+       src="./assets/ducto-orchestrator-logo-small.jpeg"/>
+</p>
 
 Ducto-Orchestrator is a modular, highly extensible, stream-processing engine designed to transform JSON-like data using the `Ducto-DSL`. It is capable of running as:
 

@@ -30,7 +30,7 @@ jobs:
       # and not under constant active development (e.g., on spec v1 release)
       - name: Remove local replace for CI build
         run: |
-          go mod edit -dropreplace github.com/tommed/ducto-dsl
+          go mod edit -dropreplace github.com/tommed/ducto-dsl || true
           go get github.com/tommed/ducto-dsl@main
           go mod tidy
 
@@ -41,7 +41,7 @@ jobs:
         run: go get -u ./...
         # Disable whilst tampering with go.mod above:
         #  go mod tidy && git diff --exit-code
-        
+
       - name: Makefile CI
         run: make ci
 
