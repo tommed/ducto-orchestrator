@@ -26,6 +26,14 @@ jobs:
         with:
           go-version: '1.24'
 
+      # TODO: we can remove this and use tags once ducto-dsl is more stable
+      # and not under constant active development (e.g., on spec v1 release)
+      - name: Remove local replace for CI build
+        run: |
+          go mod edit -dropreplace github.com/tommed/ducto-dsl
+          go get github.com/tommed/ducto-dsl@main
+          go mod tidy
+
       - name: Install Linter
         run: make lint-install
 
