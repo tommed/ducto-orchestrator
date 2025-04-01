@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "on_error": "fail",
+  "instructions": [
+    {
+      "op": "set",
+      "key": "greeting",
+      "value": "hello world"
+    }
+  ]
+}
