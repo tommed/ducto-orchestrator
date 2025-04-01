@@ -7,6 +7,7 @@
 *.dll
 *.so
 *.dylib
+./ducto-orchestrator*
 
 # Test binary, built with `go test -c`
 *.test
@@ -18,7 +19,6 @@
 # vendor/
 
 # Go workspace file
-go.work
 go.work.sum
 
 # env file
