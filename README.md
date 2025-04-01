@@ -8,6 +8,7 @@
 # Ducto Orchestrator
 
 [![CI](https://github.com/tommed/ducto-dsl/actions/workflows/ci.yml/badge.svg)](https://github.com/tommed/ducto-dsl/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/tommed/ducto-orchestrator/branch/main/graph/badge.svg)](https://codecov.io/gh/tommed/ducto-orchestrator)
 
 > Lightweight, embeddable data-stream orchestrator using [Ducto-DSL](https://github.com/tommed/ducto-dsl)
 
@@ -98,4 +99,5 @@ echo '{"foo": "bar"}' | ducto-orchestrator --program ./examples/example.json
 
 ## 📜 License
 
-[MIT](./LICENSE)
+- Code is all licensed under [MIT](./LICENSE)
+- The Ducto name, logos and robot illustrations (and likeness) are (C) Copyright 2025 Tom Medhurst, all rights reserved.
