@@ -38,10 +38,10 @@ jobs:
         run: make lint-install
 
       - name: Verify Go modules
-        run: go mod tidy
+        run: go get -u ./...
         # Disable whilst tampering with go.mod above:
-        #   && git diff --exit-code
-
+        #  go mod tidy && git diff --exit-code
+        
       - name: Makefile CI
         run: make ci
 
