@@ -13,9 +13,11 @@ LINTER_OPTS=--timeout=2m
 # General Targets
 # ----------------------
 
-.PHONY: all check ci lint test test-full coverage example-simplest clean example-map # build-all ducto-orchestrator-macos ducto-orchestrator-windows
+.PHONY: all check ci lint test test-e2e test-full coverage example-simplest clean # build-all ducto-orchestrator-macos ducto-orchestrator-windows
 
 all: check
+
+test-full: test test-e2e
 
 check: lint test-full coverage
 
@@ -46,9 +48,9 @@ test:
 	$(GO) test -short -coverprofile=$(COVERAGE_OUT) -covermode=atomic -v ./...
 	$(GO) tool cover -func=$(COVERAGE_OUT)
 
-test-full:
+test-e2e:
 	@echo "==> Running full tests"
-	$(GO) test -coverprofile=$(COVERAGE_OUT) -covermode=atomic -v ./...
+	$(GO) test -coverprofile=$(COVERAGE_OUT) -covermode=atomic -v -run E2E ./...
 	$(GO) tool cover -func=$(COVERAGE_OUT)
 
 coverage:
@@ -58,6 +60,10 @@ coverage:
 # ----------------------
 # CLI
 # ----------------------
+
+example-simplest:
+	@echo "==> Building Example: Simplest"
+	echo '{"foo":"bar"}' | $(GO) run ./cmd/ducto-orchestrator -debug -program examples/simplest.json
 
 #ducto-orchestrator-macos:
 #	@echo "==> Building macOS CLI"
