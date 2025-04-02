@@ -59,6 +59,16 @@
 				
 				<option value="file1">github.com/tommed/ducto-orchestrator/internal/cli/runner.go (0.0%)</option>
 				
+				<option value="file2">github.com/tommed/ducto-orchestrator/internal/orchestrator/input.go (100.0%)</option>
+				
+				<option value="file3">github.com/tommed/ducto-orchestrator/internal/orchestrator/orchestrator.go (72.7%)</option>
+				
+				<option value="file4">github.com/tommed/ducto-orchestrator/internal/orchestrator/output.go (100.0%)</option>
+				
+				<option value="file5">github.com/tommed/ducto-orchestrator/internal/orchestrator/stdin_reader.go (0.0%)</option>
+				
+				<option value="file6">github.com/tommed/ducto-orchestrator/internal/orchestrator/stdout_writer.go (0.0%)</option>
+				
 				</select>
 			</div>
 			<div id="legend">
@@ -96,22 +106,25 @@ func main() <span class="cov0" title="0">{
 
 import (
         "context"
-        "encoding/json"
         "flag"
         "fmt"
         "github.com/tommed/ducto-dsl/transform"
+        "github.com/tommed/ducto-orchestrator/internal/orchestrator"
         "io"
 )
 
 //goland:noinspection GoUnhandledErrorResult
 func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int <span class="cov0" title="0">{
+
+        // Parse flags from args provided not os.Args (for testing)
         fs := flag.NewFlagSet("ducto-orchestrator", flag.ContinueOnError)
         fs.SetOutput(stderr)
 
+        // User provided flags
         programPath := fs.String("program", "", "Path to the Ducto DSL program JSON file")
         debug := fs.Bool("debug", false, "Enable debug output")
 
-        // Parse the injected args
+        // Parse the flags
         if err := fs.Parse(args); err != nil </span><span class="cov0" title="0">{
                 fmt.Fprintf(stderr, "failed to parse args: %v\n", err)
                 return 1
@@ -123,39 +136,140 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int <span cla
                 return 1
         }</span>
 
-        // Our context
-        <span class="cov0" title="0">ctx := context.WithValue(context.Background(),
-                transform.ContextKeyDebug, *debug)
-
-        prog, err := transform.LoadProgram(*programPath)
+        <span class="cov0" title="0">prog, err := transform.LoadProgram(*programPath)
         if err != nil </span><span class="cov0" title="0">{
                 fmt.Fprintf(stderr, "failed to load program: %v\n", err)
                 return 1
         }</span>
 
-        <span class="cov0" title="0">inputData, err := io.ReadAll(stdin)
+        // Build and Run the Orchestrator
+        <span class="cov0" title="0">ducto := orchestrator.New(prog, *debug)
+        err = ducto.Execute(
+                context.Background(),
+                &amp;orchestrator.StdinReader{Reader: stdin},
+                &amp;orchestrator.StdoutWriter{Writer: stdout})
+
         if err != nil </span><span class="cov0" title="0">{
-                fmt.Fprintf(stderr, "failed to read stdin: %v\n", err)
+                fmt.Fprintf(stderr, "%v\n", err)
                 return 1
         }</span>
-
-        <span class="cov0" title="0">var input map[string]interface{}
-        if err := json.Unmarshal(inputData, &amp;input); err != nil </span><span class="cov0" title="0">{
-                fmt.Fprintf(stderr, "invalid input JSON: %v\n", err)
-                return 1
-        }</span>
-
-        <span class="cov0" title="0">output, err := transform.New().Apply(ctx, input, prog)
-        if err != nil </span><span class="cov0" title="0">{
-                fmt.Fprintf(stderr, "failed to execute program: %v\n", err)
-                return 1
-        }</span>
-
-        <span class="cov0" title="0">enc := json.NewEncoder(stdout)
-        enc.SetIndent("", "  ")
-        _ = enc.Encode(output)
-        return 0</span>
+        <span class="cov0" title="0">return 0</span>
 }
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package orchestrator
+
+type InputReader interface {
+        ReadInput() (map[string]interface{}, error)
+}
+
+type FakeReader struct {
+        Data map[string]interface{}
+}
+
+func (f *FakeReader) ReadInput() (map[string]interface{}, error) <span class="cov8" title="1">{
+        return f.Data, nil
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package orchestrator
+
+import (
+        "context"
+        "fmt"
+        "github.com/tommed/ducto-dsl/transform"
+)
+
+type Orchestrator struct {
+        Program *transform.Program
+        Debug   bool
+}
+
+func New(program *transform.Program, debug bool) *Orchestrator <span class="cov8" title="1">{
+        return &amp;Orchestrator{
+                Program: program,
+                Debug:   debug,
+        }
+}</span>
+
+func (o *Orchestrator) Execute(ctx context.Context, reader InputReader, writer OutputWriter) error <span class="cov8" title="1">{
+
+        // Read Input
+        input, err := reader.ReadInput()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to read input: %w", err)
+        }</span>
+
+        // Context (with flags)
+        <span class="cov8" title="1">ctx = context.WithValue(ctx,
+                transform.ContextKeyDebug, o.Debug)
+
+        // Apply transformation
+        output, err := transform.New().Apply(ctx, input, o.Program)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to apply program: %w", err)
+        }</span>
+
+        // Write Output
+        <span class="cov8" title="1">if err := writer.WriteOutput(output); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to write output: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package orchestrator
+
+type OutputWriter interface {
+        WriteOutput(map[string]interface{}) error
+}
+
+type FakeWriter struct {
+        Written map[string]interface{}
+}
+
+func (f *FakeWriter) WriteOutput(data map[string]interface{}) error <span class="cov8" title="1">{
+        f.Written = data
+        return nil
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package orchestrator
+
+import (
+        "encoding/json"
+        "io"
+)
+
+type StdinReader struct {
+        Reader io.Reader
+}
+
+func (r *StdinReader) ReadInput() (map[string]interface{}, error) <span class="cov0" title="0">{
+        var data map[string]interface{}
+        decoder := json.NewDecoder(r.Reader)
+        err := decoder.Decode(&amp;data)
+        return data, err
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package orchestrator
+
+import (
+        "encoding/json"
+        "io"
+)
+
+type StdoutWriter struct {
+        Writer io.Writer
+}
+
+func (w *StdoutWriter) WriteOutput(data map[string]interface{}) error <span class="cov0" title="0">{
+        encoder := json.NewEncoder(w.Writer)
+        encoder.SetIndent("", "  ")
+        return encoder.Encode(data)
+}</span>
 </pre>
 		
 		</div>
