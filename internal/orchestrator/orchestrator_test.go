@@ -16,14 +16,11 @@ func TestOrchestrator_Execute(t *testing.T) {
 		},
 	}
 
-	o := New(prog, false)
-
 	input := map[string]interface{}{"foo": "bar"}
-
-	reader := &FakeReader{Data: input}
+	source := NewFakeEventSource(input)
 	writer := &FakeWriter{}
 
-	err := o.Execute(context.Background(), reader, writer)
+	err := New(prog, false).RunLoop(context.Background(), source, writer)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "bar", writer.Written["foo"])
