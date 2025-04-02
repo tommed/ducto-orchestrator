@@ -6,7 +6,7 @@ replace github.com/tommed/ducto-dsl => ../ducto-dsl
 
 require (
 	github.com/stretchr/testify v1.10.0
-	github.com/tommed/ducto-dsl v0.0.0-20250401223913-f235c2ff00ef
+	github.com/tommed/ducto-dsl v0.0.0-20250402194146-d70e8ca41fc5
 )
 
 require (
