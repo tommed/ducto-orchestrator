@@ -11,6 +11,7 @@ import (
 
 //goland:noinspection GoUnhandledErrorResult
 func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	ctx := context.Background()
 
 	// Parse flags from args provided not os.Args (for testing)
 	fs := flag.NewFlagSet("ducto-orchestrator", flag.ContinueOnError)
@@ -38,16 +39,16 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	// Build and Run the Orchestrator
-	ducto := orchestrator.New(prog, *debug)
-	err = ducto.Execute(
-		context.Background(),
-		&orchestrator.StdinReader{Reader: stdin},
-		&orchestrator.StdoutWriter{Writer: stdout})
+	// Create components
+	source := orchestrator.NewStdinEventSource(stdin)
+	writer := orchestrator.NewStdoutWriter(stdout)
 
+	// Run the Loop
+	err = orchestrator.New(prog, *debug).RunLoop(ctx, source, writer)
 	if err != nil {
-		fmt.Fprintf(stderr, "%v\n", err)
+		fmt.Fprintf(stderr, "execution error: %v\n", err)
 		return 1
 	}
+
 	return 0
 }

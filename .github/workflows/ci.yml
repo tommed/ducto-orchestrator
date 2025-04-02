@@ -31,16 +31,11 @@ jobs:
       - name: Remove local replace for CI build
         run: |
           go mod edit -dropreplace github.com/tommed/ducto-dsl || true
-          go get -u github.com/tommed/ducto-dsl@latest
+          go get -u github.com/tommed/ducto-dsl
           go mod tidy
 
       - name: Install Linter
         run: make lint-install
-
-#      - name: Verify Go modules
-#        run: go get -u ./...
-#        # Disable whilst tampering with go.mod above:
-#        #  go mod tidy && git diff --exit-code
 
       - name: Makefile CI
         run: make ci

@@ -44,10 +44,9 @@ func TestOrchestrator_E2E_Matrix(t *testing.T) {
 			expected := loadJSON(t, filepath.Join(base, prefix+".expected.json"))
 
 			o := New(prog, false)
-			reader := &FakeReader{Data: input}
 			writer := &FakeWriter{}
 
-			err := o.Execute(context.Background(), reader, writer)
+			err := o.Execute(context.Background(), input, writer)
 			assert.NoError(t, err)
 			assert.Equal(t, expected, writer.Written)
 		})

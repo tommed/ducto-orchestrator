@@ -18,13 +18,7 @@ func New(program *transform.Program, debug bool) *Orchestrator {
 	}
 }
 
-func (o *Orchestrator) Execute(ctx context.Context, reader InputReader, writer OutputWriter) error {
-
-	// Read Input
-	input, err := reader.ReadInput()
-	if err != nil {
-		return fmt.Errorf("failed to read input: %w", err)
-	}
+func (o *Orchestrator) Execute(ctx context.Context, input map[string]interface{}, writer OutputWriter) error {
 
 	// Context (with flags)
 	ctx = context.WithValue(ctx,

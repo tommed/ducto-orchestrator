@@ -13,11 +13,9 @@ LINTER_OPTS=--timeout=2m
 # General Targets
 # ----------------------
 
-.PHONY: all check ci lint test test-e2e test-full coverage example-simplest clean # build-all ducto-orchestrator-macos ducto-orchestrator-windows
+.PHONY: all check ci lint test-unit test-e2e test-full coverage example-simplest clean # build-all ducto-orchestrator-macos ducto-orchestrator-windows
 
 all: check
-
-test-full: test test-e2e
 
 check: lint test-full coverage
 
@@ -43,9 +41,14 @@ lint-install:
 # Testing
 # ----------------------
 
-test:
+test-unit:
 	@echo "==> Running short tests"
 	$(GO) test -short -coverprofile=$(COVERAGE_OUT) -covermode=atomic -v ./...
+	$(GO) tool cover -func=$(COVERAGE_OUT)
+
+test-full:
+	@echo "==> Running all tests"
+	$(GO) test -coverprofile=$(COVERAGE_OUT) -covermode=atomic -v ./...
 	$(GO) tool cover -func=$(COVERAGE_OUT)
 
 test-e2e:
