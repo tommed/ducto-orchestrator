@@ -57,6 +57,8 @@
 				
 				<option value="file0">github.com/tommed/ducto-orchestrator/cmd/ducto-orchestrator/main.go (0.0%)</option>
 				
+				<option value="file1">github.com/tommed/ducto-orchestrator/internal/cli/runner.go (0.0%)</option>
+				
 				</select>
 			</div>
 			<div id="legend">
@@ -81,57 +83,78 @@
 		<pre class="file" id="file0" style="display: none">package main
 
 import (
+        "github.com/tommed/ducto-orchestrator/internal/cli"
+        "os"
+)
+
+func main() <span class="cov0" title="0">{
+        os.Exit(cli.Run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package cli
+
+import (
         "context"
         "encoding/json"
         "flag"
         "fmt"
-        "io"
-        "os"
-
         "github.com/tommed/ducto-dsl/transform"
+        "io"
 )
 
-func main() <span class="cov0" title="0">{
-        programPath := flag.String("program", "", "Path to the Ducto DSL program JSON file")
-        debug := flag.Bool("debug", false, "Enable debug output")
-        flag.Parse()
+//goland:noinspection GoUnhandledErrorResult
+func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int <span class="cov0" title="0">{
+        fs := flag.NewFlagSet("ducto-orchestrator", flag.ContinueOnError)
+        fs.SetOutput(stderr)
 
-        // our context with debug switch set
-        ctx := context.WithValue(context.Background(),
+        programPath := fs.String("program", "", "Path to the Ducto DSL program JSON file")
+        debug := fs.Bool("debug", false, "Enable debug output")
+
+        // Parse the injected args
+        if err := fs.Parse(args); err != nil </span><span class="cov0" title="0">{
+                fmt.Fprintf(stderr, "failed to parse args: %v\n", err)
+                return 1
+        }</span>
+
+        <span class="cov0" title="0">if *programPath == "" </span><span class="cov0" title="0">{
+                fmt.Fprintf(stderr, "missing --program &lt;file&gt;\n")
+                fs.Usage()
+                return 1
+        }</span>
+
+        // Our context
+        <span class="cov0" title="0">ctx := context.WithValue(context.Background(),
                 transform.ContextKeyDebug, *debug)
 
-        if *programPath == "" </span><span class="cov0" title="0">{
-                fmt.Println("missing --program &lt;file&gt;")
-                os.Exit(1)
+        prog, err := transform.LoadProgram(*programPath)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Fprintf(stderr, "failed to load program: %v\n", err)
+                return 1
         }</span>
 
-        <span class="cov0" title="0">prog, err := transform.LoadProgram(*programPath)
+        <span class="cov0" title="0">inputData, err := io.ReadAll(stdin)
         if err != nil </span><span class="cov0" title="0">{
-                fmt.Printf("failed to load program: %v\n", err)
-                os.Exit(1)
-        }</span>
-
-        <span class="cov0" title="0">inputData, err := io.ReadAll(os.Stdin)
-        if err != nil </span><span class="cov0" title="0">{
-                fmt.Printf("failed to read stdin: %v\n", err)
-                os.Exit(1)
+                fmt.Fprintf(stderr, "failed to read stdin: %v\n", err)
+                return 1
         }</span>
 
         <span class="cov0" title="0">var input map[string]interface{}
         if err := json.Unmarshal(inputData, &amp;input); err != nil </span><span class="cov0" title="0">{
-                fmt.Printf("invalid input JSON: %v\n", err)
-                os.Exit(1)
+                fmt.Fprintf(stderr, "invalid input JSON: %v\n", err)
+                return 1
         }</span>
 
         <span class="cov0" title="0">output, err := transform.New().Apply(ctx, input, prog)
         if err != nil </span><span class="cov0" title="0">{
-                fmt.Printf("failed to execute program: %v\n", err)
-                os.Exit(1)
+                fmt.Fprintf(stderr, "failed to execute program: %v\n", err)
+                return 1
         }</span>
 
-        <span class="cov0" title="0">enc := json.NewEncoder(os.Stdout)
+        <span class="cov0" title="0">enc := json.NewEncoder(stdout)
         enc.SetIndent("", "  ")
-        _ = enc.Encode(output)</span>
+        _ = enc.Encode(output)
+        return 0</span>
 }
 </pre>
 		
