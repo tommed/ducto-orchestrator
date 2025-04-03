@@ -17,7 +17,7 @@ func TestOrchestrator_Execute(t *testing.T) {
 	}
 
 	input := map[string]interface{}{"foo": "bar"}
-	source := NewFakeEventSource(input)
+	source := NewValuesEventSource(input)
 	writer := &FakeWriter{}
 
 	err := New(prog, false).RunLoop(context.Background(), source, writer)

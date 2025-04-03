@@ -9,37 +9,30 @@ import (
 
 type StdinEventSource struct {
 	reader io.Reader
-	events chan map[string]interface{}
 }
 
 func NewStdinEventSource(stdin io.Reader) EventSource {
 	return &StdinEventSource{
 		reader: stdin,
-		events: make(chan map[string]interface{}),
 	}
 }
 
-// Start reads exactly one JSON object from stdin and then closes the channel.
-func (s *StdinEventSource) Start(_ context.Context) (<-chan map[string]interface{}, <-chan error) {
-	errc := make(chan error, 1) // always buffered
+// Start reads exactly one JSON object from stdin and then closes the stream.
+func (s *StdinEventSource) Start(ctx context.Context) (<-chan map[string]interface{}, error) {
+	// Read input
+	var input map[string]interface{}
+	decoder := json.NewDecoder(s.reader)
+	if err := decoder.Decode(&input); err != nil {
+		return nil, fmt.Errorf("failed to decode stdin input: %w", err)
+	}
 
-	go func() {
-		defer close(s.events)
-		defer close(errc)
-
-		var input map[string]interface{}
-		decoder := json.NewDecoder(s.reader)
-		if err := decoder.Decode(&input); err != nil {
-			errc <- fmt.Errorf("failed to decode stdin input: %w", err)
-			return
-		}
-
-		s.events <- input
-	}()
-
-	return s.events, errc
+	// Delegate to ValuesEventSource without exporting it
+	return NewValuesEventSource(input).Start(ctx)
 }
 
 func (s *StdinEventSource) Close() error {
+	if c, ok := s.reader.(io.Closer); ok {
+		return c.Close()
+	}
 	return nil
 }
