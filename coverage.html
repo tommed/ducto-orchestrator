@@ -59,17 +59,19 @@
 				
 				<option value="file1">github.com/tommed/ducto-orchestrator/internal/cli/runner.go (0.0%)</option>
 				
-				<option value="file2">github.com/tommed/ducto-orchestrator/internal/orchestrator/input.go (100.0%)</option>
+				<option value="file2">github.com/tommed/ducto-orchestrator/internal/orchestrator/http_input.go (82.6%)</option>
 				
-				<option value="file3">github.com/tommed/ducto-orchestrator/internal/orchestrator/orchestrator.go (85.0%)</option>
+				<option value="file3">github.com/tommed/ducto-orchestrator/internal/orchestrator/input.go (100.0%)</option>
 				
-				<option value="file4">github.com/tommed/ducto-orchestrator/internal/orchestrator/output.go (100.0%)</option>
+				<option value="file4">github.com/tommed/ducto-orchestrator/internal/orchestrator/orchestrator.go (85.0%)</option>
 				
-				<option value="file5">github.com/tommed/ducto-orchestrator/internal/orchestrator/signal.go (0.0%)</option>
+				<option value="file5">github.com/tommed/ducto-orchestrator/internal/orchestrator/output.go (100.0%)</option>
 				
-				<option value="file6">github.com/tommed/ducto-orchestrator/internal/orchestrator/stdin_source.go (0.0%)</option>
+				<option value="file6">github.com/tommed/ducto-orchestrator/internal/orchestrator/signal.go (83.3%)</option>
 				
-				<option value="file7">github.com/tommed/ducto-orchestrator/internal/orchestrator/stdout_writer.go (100.0%)</option>
+				<option value="file7">github.com/tommed/ducto-orchestrator/internal/orchestrator/stdin_source.go (100.0%)</option>
+				
+				<option value="file8">github.com/tommed/ducto-orchestrator/internal/orchestrator/stdout_writer.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -117,7 +119,7 @@ import (
 
 //goland:noinspection GoUnhandledErrorResult
 func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int <span class="cov0" title="0">{
-        ctx := context.Background()
+        ctx := orchestrator.WithSignalContext(context.Background())
 
         // Parse flags from args provided not os.Args (for testing)
         fs := flag.NewFlagSet("ducto-orchestrator", flag.ContinueOnError)
@@ -146,7 +148,8 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int <span cla
         }</span>
 
         // Create components
-        <span class="cov0" title="0">source := orchestrator.NewStdinEventSource(stdin)
+        //source := orchestrator.NewStdinEventSource(stdin)
+        <span class="cov0" title="0">source := orchestrator.NewHTTPEventSource("127.0.0.1:8080", "_http")
         writer := orchestrator.NewStdoutWriter(stdout)
 
         // Run the Loop
@@ -162,6 +165,86 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int <span cla
 		
 		<pre class="file" id="file2" style="display: none">package orchestrator
 
+import (
+        "context"
+        "encoding/json"
+        "net/http"
+)
+
+type httpEventSource struct {
+        Addr          string // e.g., ":8080"
+        MetadataField string // e.g., "_http_meta" (empty string disables)
+        events        chan map[string]interface{}
+        server        *http.Server
+}
+
+func NewHTTPEventSource(addr string, metadataField string) EventSource <span class="cov8" title="1">{
+        return &amp;httpEventSource{
+                Addr:          addr,
+                MetadataField: metadataField,
+                events:        make(chan map[string]interface{}),
+        }
+}</span>
+
+func (h *httpEventSource) Start(ctx context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov8" title="1">{
+        mux := http.NewServeMux()
+
+        //goland:noinspection GoUnhandledErrorResult
+        mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) </span><span class="cov8" title="1">{
+                defer r.Body.Close()
+
+                // get input from body
+                var input map[string]interface{}
+                if err := json.NewDecoder(r.Body).Decode(&amp;input); err != nil </span><span class="cov0" title="0">{
+                        http.Error(w, "invalid JSON", http.StatusBadRequest)
+                        return
+                }</span>
+
+                <span class="cov8" title="1">if h.MetadataField != "" </span><span class="cov8" title="1">{
+                        input[h.MetadataField] = map[string]interface{}{
+                                "method":       r.Method,
+                                "path":         r.URL.Path,
+                                "http_version": r.Proto,
+                                "headers":      r.Header,
+                                "remote_addr":  r.RemoteAddr,
+                        }
+                }</span>
+
+                <span class="cov8" title="1">select </span>{
+                case h.events &lt;- input:<span class="cov8" title="1">
+                        w.WriteHeader(http.StatusAccepted)
+                        break</span>
+                default:<span class="cov0" title="0">
+                        http.Error(w, "event queue full", http.StatusServiceUnavailable)</span>
+                }
+
+        })
+
+        <span class="cov8" title="1">h.server = &amp;http.Server{
+                Addr:    h.Addr,
+                Handler: mux,
+        }
+
+        go func() </span><span class="cov8" title="1">{
+                _ = h.server.ListenAndServe()
+        }</span>()
+
+        <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{
+                &lt;-ctx.Done()
+                _ = h.server.Shutdown(context.Background())
+                close(h.events)
+        }</span>()
+
+        <span class="cov8" title="1">return h.events, nil</span>
+}
+
+func (h *httpEventSource) Close() error <span class="cov0" title="0">{
+        return h.server.Shutdown(context.Background())
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package orchestrator
+
 import "context"
 
 type EventSource interface {
@@ -169,49 +252,49 @@ type EventSource interface {
         Close() error
 }
 
-type ValuesEventSource struct {
+type valuesEventSource struct {
         stream chan map[string]interface{}
         values []map[string]interface{}
 }
 
-func NewValuesEventSource(values ...map[string]interface{}) EventSource <span class="cov10" title="2">{
+func NewValuesEventSource(values ...map[string]interface{}) EventSource <span class="cov10" title="3">{
         ch := make(chan map[string]interface{}, len(values))
-        return &amp;ValuesEventSource{
+        return &amp;valuesEventSource{
                 stream: ch,
                 values: values,
         }
 }</span>
 
-func (f *ValuesEventSource) Start(_ context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov10" title="2">{
-        for _, v := range f.values </span><span class="cov10" title="2">{
+func (f *valuesEventSource) Start(_ context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov10" title="3">{
+        for _, v := range f.values </span><span class="cov10" title="3">{
                 f.stream &lt;- v
         }</span>
-        <span class="cov10" title="2">close(f.stream)
+        <span class="cov10" title="3">close(f.stream)
         return f.stream, nil</span>
 }
 
-func (f *ValuesEventSource) Close() error <span class="cov10" title="2">{
+func (f *valuesEventSource) Close() error <span class="cov6" title="2">{
         return nil // nothing to close
 }</span>
 
-type ErrorEventSource struct {
+type errorEventSource struct {
         err error
 }
 
-func NewErrorEventSource(err error) *ErrorEventSource <span class="cov1" title="1">{
-        return &amp;ErrorEventSource{err: err}
+func NewErrorEventSource(err error) *errorEventSource <span class="cov1" title="1">{
+        return &amp;errorEventSource{err: err}
 }</span>
 
-func (e *ErrorEventSource) Start(ctx context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov1" title="1">{
+func (e *errorEventSource) Start(ctx context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov1" title="1">{
         return nil, e.err
 }</span>
 
-func (e *ErrorEventSource) Close() error <span class="cov1" title="1">{
+func (e *errorEventSource) Close() error <span class="cov1" title="1">{
         return nil
 }</span>
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">package orchestrator
+		<pre class="file" id="file4" style="display: none">package orchestrator
 
 import (
         "context"
@@ -282,7 +365,7 @@ func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}
 }
 </pre>
 		
-		<pre class="file" id="file4" style="display: none">package orchestrator
+		<pre class="file" id="file5" style="display: none">package orchestrator
 
 type OutputWriter interface {
         WriteOutput(map[string]interface{}) error
@@ -298,27 +381,32 @@ func (f *FakeWriter) WriteOutput(data map[string]interface{}) error <span class=
 }</span>
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package orchestrator
+		<pre class="file" id="file6" style="display: none">package orchestrator
 
 import (
         "context"
+        "os"
         "os/signal"
         "syscall"
 )
 
 func WithSignalContext(parent context.Context) context.Context <span class="cov0" title="0">{
-        ctx, stop := signal.NotifyContext(parent, syscall.SIGINT, syscall.SIGTERM)
+        return withSignalContextRaw(parent, syscall.SIGINT, syscall.SIGTERM)
+}</span>
 
-        go func() </span><span class="cov0" title="0">{
+func withSignalContextRaw(parent context.Context, signals ...os.Signal) context.Context <span class="cov8" title="1">{
+        ctx, stop := signal.NotifyContext(parent, signals...)
+
+        go func() </span><span class="cov8" title="1">{
                 &lt;-ctx.Done()
                 stop() // clean up signal handlers
         }</span>()
 
-        <span class="cov0" title="0">return ctx</span>
+        <span class="cov8" title="1">return ctx</span>
 }
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package orchestrator
+		<pre class="file" id="file7" style="display: none">package orchestrator
 
 import (
         "context"
@@ -327,53 +415,53 @@ import (
         "io"
 )
 
-type StdinEventSource struct {
+type stdinEventSource struct {
         reader io.Reader
 }
 
-func NewStdinEventSource(stdin io.Reader) EventSource <span class="cov0" title="0">{
-        return &amp;StdinEventSource{
+func NewStdinEventSource(stdin io.Reader) EventSource <span class="cov10" title="3">{
+        return &amp;stdinEventSource{
                 reader: stdin,
         }
 }</span>
 
 // Start reads exactly one JSON object from stdin and then closes the stream.
-func (s *StdinEventSource) Start(ctx context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov0" title="0">{
+func (s *stdinEventSource) Start(ctx context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov6" title="2">{
         // Read input
         var input map[string]interface{}
         decoder := json.NewDecoder(s.reader)
-        if err := decoder.Decode(&amp;input); err != nil </span><span class="cov0" title="0">{
+        if err := decoder.Decode(&amp;input); err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("failed to decode stdin input: %w", err)
         }</span>
 
-        // Delegate to ValuesEventSource without exporting it
-        <span class="cov0" title="0">return NewValuesEventSource(input).Start(ctx)</span>
+        // Delegate to valuesEventSource without exporting it
+        <span class="cov1" title="1">return NewValuesEventSource(input).Start(ctx)</span>
 }
 
-func (s *StdinEventSource) Close() error <span class="cov0" title="0">{
-        if c, ok := s.reader.(io.Closer); ok </span><span class="cov0" title="0">{
+func (s *stdinEventSource) Close() error <span class="cov10" title="3">{
+        if c, ok := s.reader.(io.Closer); ok </span><span class="cov1" title="1">{
                 return c.Close()
         }</span>
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov6" title="2">return nil</span>
 }
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package orchestrator
+		<pre class="file" id="file8" style="display: none">package orchestrator
 
 import (
         "encoding/json"
         "io"
 )
 
-type StdoutWriter struct {
+type stdoutWriter struct {
         writer io.Writer
 }
 
-func NewStdoutWriter(stdout io.Writer) *StdoutWriter <span class="cov8" title="1">{
-        return &amp;StdoutWriter{writer: stdout}
+func NewStdoutWriter(stdout io.Writer) OutputWriter <span class="cov8" title="1">{
+        return &amp;stdoutWriter{writer: stdout}
 }</span>
 
-func (w *StdoutWriter) WriteOutput(data map[string]interface{}) error <span class="cov8" title="1">{
+func (w *stdoutWriter) WriteOutput(data map[string]interface{}) error <span class="cov8" title="1">{
         encoder := json.NewEncoder(w.writer)
         encoder.SetIndent("", "  ")
         return encoder.Encode(data)

@@ -7,20 +7,20 @@ type EventSource interface {
 	Close() error
 }
 
-type ValuesEventSource struct {
+type valuesEventSource struct {
 	stream chan map[string]interface{}
 	values []map[string]interface{}
 }
 
 func NewValuesEventSource(values ...map[string]interface{}) EventSource {
 	ch := make(chan map[string]interface{}, len(values))
-	return &ValuesEventSource{
+	return &valuesEventSource{
 		stream: ch,
 		values: values,
 	}
 }
 
-func (f *ValuesEventSource) Start(_ context.Context) (<-chan map[string]interface{}, error) {
+func (f *valuesEventSource) Start(_ context.Context) (<-chan map[string]interface{}, error) {
 	for _, v := range f.values {
 		f.stream <- v
 	}
@@ -28,22 +28,22 @@ func (f *ValuesEventSource) Start(_ context.Context) (<-chan map[string]interfac
 	return f.stream, nil
 }
 
-func (f *ValuesEventSource) Close() error {
+func (f *valuesEventSource) Close() error {
 	return nil // nothing to close
 }
 
-type ErrorEventSource struct {
+type errorEventSource struct {
 	err error
 }
 
-func NewErrorEventSource(err error) *ErrorEventSource {
-	return &ErrorEventSource{err: err}
+func NewErrorEventSource(err error) *errorEventSource {
+	return &errorEventSource{err: err}
 }
 
-func (e *ErrorEventSource) Start(ctx context.Context) (<-chan map[string]interface{}, error) {
+func (e *errorEventSource) Start(ctx context.Context) (<-chan map[string]interface{}, error) {
 	return nil, e.err
 }
 
-func (e *ErrorEventSource) Close() error {
+func (e *errorEventSource) Close() error {
 	return nil
 }

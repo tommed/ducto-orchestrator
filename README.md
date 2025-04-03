@@ -80,14 +80,21 @@ echo '{"foo": "bar"}' | ducto-orchestrator --program ./examples/example.json
 
 ## 🛣️ Roadmap
 
-- [ ] GCP Edition (Cloud Function: pubsub → pubsub)
+- [ ] Local CLI
 - [ ] HTTP Trigger Support
+- [ ] GCP Edition (Cloud Function: pubsub → pubsub)
 - [ ] Feature Flag Processor
 - [ ] Output Attribute Projection
 - [ ] Logging Layer
 - [ ] Embeddable SDK Mode
 - [ ] AWS & Azure Editions
 - [ ] Playground (WebAssembly + Vue3)
+
+---
+
+## 🧑‍💻 Contributing
+
+Please see our [Contributing Guide](./CONTRIBUTING.md).
 
 ---
 
