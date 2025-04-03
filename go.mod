@@ -2,8 +2,6 @@ module github.com/tommed/ducto-orchestrator
 
 go 1.24.1
 
-replace github.com/tommed/ducto-dsl => ../ducto-dsl
-
 require (
 	github.com/stretchr/testify v1.10.0
 	github.com/tommed/ducto-dsl v0.0.0-20250402194146-d70e8ca41fc5
