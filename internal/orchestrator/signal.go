@@ -2,12 +2,17 @@ package orchestrator
 
 import (
 	"context"
+	"os"
 	"os/signal"
 	"syscall"
 )
 
 func WithSignalContext(parent context.Context) context.Context {
-	ctx, stop := signal.NotifyContext(parent, syscall.SIGINT, syscall.SIGTERM)
+	return withSignalContextRaw(parent, syscall.SIGINT, syscall.SIGTERM)
+}
+
+func withSignalContextRaw(parent context.Context, signals ...os.Signal) context.Context {
+	ctx, stop := signal.NotifyContext(parent, signals...)
 
 	go func() {
 		<-ctx.Done()

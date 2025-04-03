@@ -92,6 +92,12 @@ echo '{"foo": "bar"}' | ducto-orchestrator --program ./examples/example.json
 
 ---
 
+## 🧑‍💻 Contributing
+
+Please see our [Contributing Guide](./CONTRIBUTING.md).
+
+---
+
 ## 🤖 Related Projects
 
 - [ducto-dsl](https://github.com/tommed/ducto-dsl) — The DSL engine powering Ducto-Orchestrator

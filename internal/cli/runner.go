@@ -11,7 +11,7 @@ import (
 
 //goland:noinspection GoUnhandledErrorResult
 func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	ctx := context.Background()
+	ctx := orchestrator.WithSignalContext(context.Background())
 
 	// Parse flags from args provided not os.Args (for testing)
 	fs := flag.NewFlagSet("ducto-orchestrator", flag.ContinueOnError)
@@ -40,7 +40,8 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 
 	// Create components
-	source := orchestrator.NewStdinEventSource(stdin)
+	//source := orchestrator.NewStdinEventSource(stdin)
+	source := orchestrator.NewHTTPEventSource("127.0.0.1:8080", "_http")
 	writer := orchestrator.NewStdoutWriter(stdout)
 
 	// Run the Loop
