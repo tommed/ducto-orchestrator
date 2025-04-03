@@ -61,7 +61,7 @@
 				
 				<option value="file2">github.com/tommed/ducto-orchestrator/internal/orchestrator/input.go (100.0%)</option>
 				
-				<option value="file3">github.com/tommed/ducto-orchestrator/internal/orchestrator/orchestrator.go (75.0%)</option>
+				<option value="file3">github.com/tommed/ducto-orchestrator/internal/orchestrator/orchestrator.go (85.0%)</option>
 				
 				<option value="file4">github.com/tommed/ducto-orchestrator/internal/orchestrator/output.go (100.0%)</option>
 				
@@ -69,7 +69,7 @@
 				
 				<option value="file6">github.com/tommed/ducto-orchestrator/internal/orchestrator/stdin_source.go (0.0%)</option>
 				
-				<option value="file7">github.com/tommed/ducto-orchestrator/internal/orchestrator/stdout_writer.go (0.0%)</option>
+				<option value="file7">github.com/tommed/ducto-orchestrator/internal/orchestrator/stdout_writer.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -174,7 +174,7 @@ type ValuesEventSource struct {
         values []map[string]interface{}
 }
 
-func NewValuesEventSource(values ...map[string]interface{}) EventSource <span class="cov8" title="1">{
+func NewValuesEventSource(values ...map[string]interface{}) EventSource <span class="cov10" title="2">{
         ch := make(chan map[string]interface{}, len(values))
         return &amp;ValuesEventSource{
                 stream: ch,
@@ -182,16 +182,32 @@ func NewValuesEventSource(values ...map[string]interface{}) EventSource <span cl
         }
 }</span>
 
-func (f *ValuesEventSource) Start(_ context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov8" title="1">{
-        for _, v := range f.values </span><span class="cov8" title="1">{
+func (f *ValuesEventSource) Start(_ context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov10" title="2">{
+        for _, v := range f.values </span><span class="cov10" title="2">{
                 f.stream &lt;- v
         }</span>
-        <span class="cov8" title="1">close(f.stream)
+        <span class="cov10" title="2">close(f.stream)
         return f.stream, nil</span>
 }
 
-func (f *ValuesEventSource) Close() error <span class="cov8" title="1">{
+func (f *ValuesEventSource) Close() error <span class="cov10" title="2">{
         return nil // nothing to close
+}</span>
+
+type ErrorEventSource struct {
+        err error
+}
+
+func NewErrorEventSource(err error) *ErrorEventSource <span class="cov1" title="1">{
+        return &amp;ErrorEventSource{err: err}
+}</span>
+
+func (e *ErrorEventSource) Start(ctx context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov1" title="1">{
+        return nil, e.err
+}</span>
+
+func (e *ErrorEventSource) Close() error <span class="cov1" title="1">{
+        return nil
 }</span>
 </pre>
 		
@@ -208,44 +224,44 @@ type Orchestrator struct {
         Debug   bool
 }
 
-func New(program *transform.Program, debug bool) *Orchestrator <span class="cov10" title="2">{
+func New(program *transform.Program, debug bool) *Orchestrator <span class="cov7" title="3">{
         return &amp;Orchestrator{
                 Program: program,
                 Debug:   debug,
         }
 }</span>
 
-func (o *Orchestrator) RunLoop(ctx context.Context, source EventSource, writer OutputWriter) error <span class="cov1" title="1">{
+func (o *Orchestrator) RunLoop(ctx context.Context, source EventSource, writer OutputWriter) error <span class="cov8" title="4">{
 
         // Setup Source
         events, err := source.Start(ctx)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov1" title="1">{
                 return err
         }</span>
 
         // Teardown Source
-        <span class="cov1" title="1">defer func(source EventSource) </span><span class="cov1" title="1">{
+        <span class="cov7" title="3">defer func(source EventSource) </span><span class="cov7" title="3">{
                 _ = source.Close()
         }</span>(source)
 
-        <span class="cov1" title="1">for </span><span class="cov10" title="2">{
+        <span class="cov7" title="3">for </span><span class="cov10" title="5">{
                 select </span>{
-                case &lt;-ctx.Done():<span class="cov0" title="0">
+                case &lt;-ctx.Done():<span class="cov1" title="1">
                         return ctx.Err()</span>
 
-                case evt, ok := &lt;-events:<span class="cov10" title="2">
-                        if !ok </span><span class="cov1" title="1">{
+                case evt, ok := &lt;-events:<span class="cov8" title="4">
+                        if !ok </span><span class="cov4" title="2">{
                                 return nil // stream closed naturally
                         }</span>
 
-                        <span class="cov1" title="1">if err := o.RunOnce(ctx, evt, writer); err != nil </span><span class="cov0" title="0">{
+                        <span class="cov4" title="2">if err := o.RunOnce(ctx, evt, writer); err != nil </span><span class="cov0" title="0">{
                                 return err
                         }</span>
                 }
         }
 }
 
-func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}, writer OutputWriter) error <span class="cov10" title="2">{
+func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}, writer OutputWriter) error <span class="cov7" title="3">{
 
         // Context (with flags)
         ctx = context.WithValue(ctx,
@@ -258,11 +274,11 @@ func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}
         }</span>
 
         // Write Output
-        <span class="cov10" title="2">if err := writer.WriteOutput(output); err != nil </span><span class="cov0" title="0">{
+        <span class="cov7" title="3">if err := writer.WriteOutput(output); err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to write output: %w", err)
         }</span>
 
-        <span class="cov10" title="2">return nil</span>
+        <span class="cov7" title="3">return nil</span>
 }
 </pre>
 		
@@ -353,11 +369,11 @@ type StdoutWriter struct {
         writer io.Writer
 }
 
-func NewStdoutWriter(stdout io.Writer) *StdoutWriter <span class="cov0" title="0">{
+func NewStdoutWriter(stdout io.Writer) *StdoutWriter <span class="cov8" title="1">{
         return &amp;StdoutWriter{writer: stdout}
 }</span>
 
-func (w *StdoutWriter) WriteOutput(data map[string]interface{}) error <span class="cov0" title="0">{
+func (w *StdoutWriter) WriteOutput(data map[string]interface{}) error <span class="cov8" title="1">{
         encoder := json.NewEncoder(w.writer)
         encoder.SetIndent("", "  ")
         return encoder.Encode(data)
