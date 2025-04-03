@@ -18,12 +18,21 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	fs.SetOutput(stderr)
 
 	// User provided flags
+	sourceType := fs.String("source", "stdin", "event source (stdin, http, pubsub, ...)")
 	programPath := fs.String("program", "", "Path to the Ducto DSL program JSON file")
 	debug := fs.Bool("debug", false, "Enable debug output")
+	addr := fs.String("addr", "127.0.0.1:8080", "the address to bind to when --source http")
+	metaField := fs.String("meta", "", "when supplied, this is the field http meta-data will be set to with --source http")
 
 	// Parse the flags
 	if err := fs.Parse(args); err != nil {
 		fmt.Fprintf(stderr, "failed to parse args: %v\n", err)
+		return 1
+	}
+
+	if *sourceType == "" {
+		fmt.Fprintf(stderr, "missing --source stdin|http|...\n")
+		fs.Usage()
 		return 1
 	}
 
@@ -40,8 +49,19 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 
 	// Create components
+	var source orchestrator.EventSource
+
+	switch *sourceType {
+	case "stdin":
+		source = orchestrator.NewStdinEventSource(stdin)
+	case "http":
+		source = orchestrator.NewHTTPEventSource(*addr, *metaField)
+	default:
+		fmt.Fprintf(stderr, "unknown source type: %s\n", sourceType)
+		return 1
+	}
+
 	//source := orchestrator.NewStdinEventSource(stdin)
-	source := orchestrator.NewHTTPEventSource("127.0.0.1:8080", "_http")
 	writer := orchestrator.NewStdoutWriter(stdout)
 
 	// Run the Loop
