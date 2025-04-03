@@ -18,7 +18,37 @@ func New(program *transform.Program, debug bool) *Orchestrator {
 	}
 }
 
-func (o *Orchestrator) Execute(ctx context.Context, input map[string]interface{}, writer OutputWriter) error {
+func (o *Orchestrator) RunLoop(ctx context.Context, source EventSource, writer OutputWriter) error {
+
+	// Setup Source
+	events, err := source.Start(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Teardown Source
+	defer func(source EventSource) {
+		_ = source.Close()
+	}(source)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+
+		case evt, ok := <-events:
+			if !ok {
+				return nil // stream closed naturally
+			}
+
+			if err := o.RunOnce(ctx, evt, writer); err != nil {
+				return err
+			}
+		}
+	}
+}
+
+func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}, writer OutputWriter) error {
 
 	// Context (with flags)
 	ctx = context.WithValue(ctx,

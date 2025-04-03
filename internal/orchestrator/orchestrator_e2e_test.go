@@ -46,7 +46,7 @@ func TestOrchestrator_E2E_Matrix(t *testing.T) {
 			o := New(prog, false)
 			writer := &FakeWriter{}
 
-			err := o.Execute(context.Background(), input, writer)
+			err := o.RunOnce(context.Background(), input, writer)
 			assert.NoError(t, err)
 			assert.Equal(t, expected, writer.Written)
 		})

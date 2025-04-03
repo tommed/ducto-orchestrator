@@ -3,29 +3,31 @@ package orchestrator
 import "context"
 
 type EventSource interface {
-	Start(ctx context.Context) (<-chan map[string]interface{}, <-chan error)
+	Start(ctx context.Context) (<-chan map[string]interface{}, error)
 	Close() error
 }
 
-type FakeEventSource struct {
-	events chan map[string]interface{}
+type ValuesEventSource struct {
+	stream chan map[string]interface{}
+	values []map[string]interface{}
 }
 
-func NewFakeEventSource(events ...map[string]interface{}) EventSource {
-	ch := make(chan map[string]interface{}, len(events))
-	for _, e := range events {
-		ch <- e
-	}
-	close(ch)
-	return &FakeEventSource{
-		events: ch,
+func NewValuesEventSource(values ...map[string]interface{}) EventSource {
+	ch := make(chan map[string]interface{}, len(values))
+	return &ValuesEventSource{
+		stream: ch,
+		values: values,
 	}
 }
 
-func (f *FakeEventSource) Start(_ context.Context) (<-chan map[string]interface{}, <-chan error) {
-	return f.events, nil
+func (f *ValuesEventSource) Start(_ context.Context) (<-chan map[string]interface{}, error) {
+	for _, v := range f.values {
+		f.stream <- v
+	}
+	close(f.stream)
+	return f.stream, nil
 }
 
-func (f *FakeEventSource) Close() error {
-	return nil
+func (f *ValuesEventSource) Close() error {
+	return nil // nothing to close
 }
