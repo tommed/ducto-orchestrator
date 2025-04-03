@@ -31,3 +31,19 @@ func (f *ValuesEventSource) Start(_ context.Context) (<-chan map[string]interfac
 func (f *ValuesEventSource) Close() error {
 	return nil // nothing to close
 }
+
+type ErrorEventSource struct {
+	err error
+}
+
+func NewErrorEventSource(err error) *ErrorEventSource {
+	return &ErrorEventSource{err: err}
+}
+
+func (e *ErrorEventSource) Start(ctx context.Context) (<-chan map[string]interface{}, error) {
+	return nil, e.err
+}
+
+func (e *ErrorEventSource) Close() error {
+	return nil
+}
