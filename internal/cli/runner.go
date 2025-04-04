@@ -39,7 +39,7 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	ctx := context.Background()
+	ctx := orchestrator.WithSignalContext(context.Background())
 
 	// Load program
 	var prog *transform.Program

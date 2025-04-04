@@ -153,7 +153,7 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int <span cla
                 return 1
         }</span>
 
-        <span class="cov0" title="0">ctx := context.Background()
+        <span class="cov0" title="0">ctx := orchestrator.WithSignalContext(context.Background())
 
         // Load program
         var prog *transform.Program
