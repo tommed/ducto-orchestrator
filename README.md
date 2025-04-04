@@ -18,7 +18,7 @@
 
 <p align="center">
   <img alt="Graphical representation of Ducto manipulate streaming data in a system of pipes" 
-       src="./assets/ducto-orchestrator-logo-small.jpeg"/>
+       src="./assets/ducto-orchestrator-logo-small.jpg"/>
 </p>
 
 Ducto-Orchestrator is a modular, highly extensible, stream-processing engine designed to transform JSON-like data using the `Ducto-DSL`. It is capable of running as:
@@ -78,13 +78,16 @@ echo '{"foo": "bar"}' | ducto-orchestrator -config examples/config.yaml
 
 ```yaml
 # example/config.yaml
+
+# Set here, or use -debug when calling the orchestrator
+debug: true
+
+# Program by filepath...
 program_file: simplest.json
-# OR, embed the program in your config file
+# ...Or embed the program in your config file
 #program:
 #  version: 1
 #  instructions: []
-
-#debug: true
 
 source:
   type: http
@@ -112,6 +115,24 @@ output:
 - [ ] Embeddable SDK Mode
 - [ ] AWS & Azure Editions
 - [ ] Playground (WebAssembly + Vue3)
+
+### Variations Planned
+
+Ducto for your local command line: 
+
+![Ducto for the CLI](./assets/ducto-orchestrator-cli-logo-small.jpg)
+
+Ducto running in Google Cloud:
+
+![Ducto for GCP](./assets/ducto-orchestrator-gcp-logo-small.jpg)
+
+Ducto running in Microsoft Azure:
+
+![Ducto for Azure](./assets/ducto-orchestrator-azure-logo-small.jpg)
+
+Ducto running in Amazon Web Services (AWS):
+
+![Ducto for AWS](./assets/ducto-orchestrator-aws-logo-small.jpg)
 
 ---
 
