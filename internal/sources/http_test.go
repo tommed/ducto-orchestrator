@@ -16,7 +16,7 @@ import (
 )
 
 //goland:noinspection GoUnhandledErrorResult
-//goland:noinspection HttpUrlsUsage
+//goland:noinspection HttpUrlsUsage,GoUnhandledErrorResult
 func TestHTTPEventSource_SuccessfulEvent(t *testing.T) {
 	// Arrange
 	ctx, cancel := context.WithCancel(context.Background())
