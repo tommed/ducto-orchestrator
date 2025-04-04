@@ -1,10 +1,23 @@
-package orchestrator
+package sources
 
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 )
+
+type HTTPOptions struct {
+	Addr      string `mapstructure:"addr"`
+	MetaField string `mapstructure:"meta_field"`
+}
+
+func (opts *HTTPOptions) Validate() error {
+	if opts.Addr == "" {
+		return errors.New("addr is required")
+	}
+	return nil
+}
 
 type httpEventSource struct {
 	Addr          string // e.g., ":8080"
@@ -13,10 +26,10 @@ type httpEventSource struct {
 	server        *http.Server
 }
 
-func NewHTTPEventSource(addr string, metadataField string) EventSource {
+func NewHTTPEventSource(opts HTTPOptions) EventSource {
 	return &httpEventSource{
-		Addr:          addr,
-		MetadataField: metadataField,
+		Addr:          opts.Addr,
+		MetadataField: opts.MetaField,
 		events:        make(chan map[string]interface{}),
 	}
 }

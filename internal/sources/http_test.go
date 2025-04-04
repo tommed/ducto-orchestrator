@@ -1,4 +1,4 @@
-package orchestrator
+package sources
 
 import (
 	"bytes"
@@ -24,7 +24,10 @@ func TestHTTPEventSource_SuccessfulEvent(t *testing.T) {
 
 	// Build server and hijack it to httptest
 	addr := findFreePort(t)
-	source := NewHTTPEventSource(addr, "_meta").(*httpEventSource)
+	source := NewHTTPEventSource(HTTPOptions{
+		Addr:      addr,
+		MetaField: "_meta",
+	}).(*httpEventSource)
 	server := hijackHTTPEventSource(ctx, source)
 	defer server.Close()
 

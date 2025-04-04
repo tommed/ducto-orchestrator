@@ -1,4 +1,4 @@
-package orchestrator
+package sources
 
 import (
 	"bytes"
@@ -25,13 +25,13 @@ func TestStdinEventSource_Start(t *testing.T) {
 		{
 			name: "simplest",
 			args: args{
-				fileName: "testdata/cases/simplest.input.json",
+				fileName: "../../testdata/cases/simplest.input.json",
 			},
 		},
 		{
 			name: "invalid json",
 			args: args{
-				fileName: "testdata/invalid.json",
+				fileName: "../../testdata/invalid.json",
 			},
 			wantErrStart: errors.New("failed to decode stdin input: invalid character '}' looking for beginning of value"),
 		},

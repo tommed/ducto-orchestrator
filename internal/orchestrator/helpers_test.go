@@ -1,13 +1,8 @@
 package orchestrator
 
 import (
-	"bytes"
 	"context"
 )
-
-func buf() *bytes.Buffer {
-	return &bytes.Buffer{}
-}
 
 // SubjectEventSource has a Push event for manually sending events through the
 // channel. This should only really be used for unit testing - otherwise consider
