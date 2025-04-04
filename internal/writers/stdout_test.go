@@ -13,7 +13,7 @@ func TestNewStdoutWriter(t *testing.T) {
 	stdout := &bytes.Buffer{}
 	event := map[string]interface{}{"foo": "bar"}
 	expected, _ := json.MarshalIndent(event, "", "  ")
-	output := NewStdoutWriter(stdout)
+	output := NewStdoutWriter(stdout, StdoutOptions{Pretty: true})
 
 	// Act
 	err := output.WriteOutput(event)
