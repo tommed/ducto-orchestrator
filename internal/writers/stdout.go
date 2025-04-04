@@ -5,16 +5,23 @@ import (
 	"io"
 )
 
-type stdoutWriter struct {
-	writer io.Writer
+type StdoutOptions struct {
+	Pretty bool `mapstructure:"pretty"`
 }
 
-func NewStdoutWriter(stdout io.Writer) OutputWriter {
-	return &stdoutWriter{writer: stdout}
+type stdoutWriter struct {
+	writer io.Writer
+	opts   StdoutOptions
+}
+
+func NewStdoutWriter(stdout io.Writer, opts StdoutOptions) OutputWriter {
+	return &stdoutWriter{writer: stdout, opts: opts}
 }
 
 func (w *stdoutWriter) WriteOutput(data map[string]interface{}) error {
 	encoder := json.NewEncoder(w.writer)
-	encoder.SetIndent("", "  ")
+	if w.opts.Pretty {
+		encoder.SetIndent("", "  ")
+	}
 	return encoder.Encode(data)
 }

@@ -73,15 +73,38 @@ go install github.com/tommed/ducto-orchestrator/cmd/ducto-orchestrator@latest
 ### Run Example (stdin → transform → stdout)
 
 ```bash
-echo '{"foo": "bar"}' | ducto-orchestrator --program ./examples/example.json
+echo '{"foo": "bar"}' | ducto-orchestrator -config examples/config.yaml
+```
+
+```yaml
+# example/config.yaml
+program_file: simplest.json
+# OR, embed the program in your config file
+#program:
+#  version: 1
+#  instructions: []
+
+#debug: true
+
+source:
+  type: http
+  config:
+    addr: ":8080"
+    meta_field: "_http"
+
+output:
+  type: stdout
+  config:
+    pretty: true
+
 ```
 
 ---
 
 ## 🛣️ Roadmap
 
-- [ ] Local CLI
-- [ ] HTTP Trigger Support
+- [x] Local CLI
+- [x] HTTP Trigger Support
 - [ ] GCP Edition (Cloud Function: pubsub → pubsub)
 - [ ] Feature Flag Processor
 - [ ] Output Attribute Projection
