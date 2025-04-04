@@ -3,6 +3,7 @@ package orchestrator
 import (
 	"context"
 	"encoding/json"
+	"github.com/tommed/ducto-orchestrator/internal/writers"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,7 +18,7 @@ func TestOrchestrator_E2E_Matrix(t *testing.T) {
 		t.Skip("skipping E2E tests in short mode")
 	}
 
-	base := "testdata/cases"
+	base := "../../testdata/cases"
 
 	entries, err := os.ReadDir(base)
 	assert.NoError(t, err)
@@ -44,7 +45,7 @@ func TestOrchestrator_E2E_Matrix(t *testing.T) {
 			expected := loadJSON(t, filepath.Join(base, prefix+".expected.json"))
 
 			o := New(prog, false)
-			writer := &FakeWriter{}
+			writer := &writers.FakeWriter{}
 
 			err := o.RunOnce(context.Background(), input, writer)
 			assert.NoError(t, err)

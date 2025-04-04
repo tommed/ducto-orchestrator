@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/tommed/ducto-dsl/transform"
+	"github.com/tommed/ducto-orchestrator/internal/sources"
+	"github.com/tommed/ducto-orchestrator/internal/writers"
 	"testing"
 	"time"
 
@@ -14,9 +16,9 @@ import (
 func TestOrchestrator_RunLoop_Failure(t *testing.T) {
 	ctx := context.Background()
 	o := &Orchestrator{}
-	writer := &FakeWriter{}
+	writer := &writers.FakeWriter{}
 
-	source := NewErrorEventSource(errors.New("expected setup failure"))
+	source := sources.NewErrorEventSource(errors.New("expected setup failure"))
 	defer source.Close()
 
 	err := o.RunLoop(ctx, source, writer)
@@ -39,7 +41,7 @@ func TestOrchestrator_RunLoop_CancelledCtx(t *testing.T) {
 	o := &Orchestrator{}
 	err := o.RunLoop(ctx,
 		source,
-		&FakeWriter{})
+		&writers.FakeWriter{})
 	assert.Error(t, err)
 	assert.Equal(t, err.Error(), "context canceled")
 }
@@ -53,8 +55,8 @@ func TestOrchestrator_Execute(t *testing.T) {
 	}
 
 	input := map[string]interface{}{"foo": "bar"}
-	source := NewValuesEventSource(input)
-	writer := &FakeWriter{}
+	source := sources.NewValuesEventSource(input)
+	writer := &writers.FakeWriter{}
 
 	err := New(prog, false).RunLoop(context.Background(), source, writer)
 

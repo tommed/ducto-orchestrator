@@ -4,70 +4,81 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/tommed/ducto-dsl/transform"
-	"github.com/tommed/ducto-orchestrator/internal/orchestrator"
+	"github.com/tommed/ducto-orchestrator/internal/sources"
+	"github.com/tommed/ducto-orchestrator/internal/writers"
 	"io"
+
+	"github.com/tommed/ducto-dsl/transform"
+
+	"github.com/tommed/ducto-orchestrator/internal/config"
+	"github.com/tommed/ducto-orchestrator/internal/orchestrator"
 )
 
 //goland:noinspection GoUnhandledErrorResult
 func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
-	ctx := orchestrator.WithSignalContext(context.Background())
-
-	// Parse flags from args provided not os.Args (for testing)
 	fs := flag.NewFlagSet("ducto-orchestrator", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 
-	// User provided flags
-	sourceType := fs.String("source", "stdin", "event source (stdin, http, pubsub, ...)")
-	programPath := fs.String("program", "", "Path to the Ducto DSL program JSON file")
-	debug := fs.Bool("debug", false, "Enable debug output")
-	addr := fs.String("addr", "127.0.0.1:8080", "the address to bind to when --source http")
-	metaField := fs.String("meta", "", "when supplied, this is the field http meta-data will be set to with --source http")
+	var configPath string
+	var debug bool
+	fs.StringVar(&configPath, "config", "", "Path to the config file")
+	fs.BoolVar(&debug, "debug", false, "Enable debug mode")
 
-	// Parse the flags
 	if err := fs.Parse(args); err != nil {
 		fmt.Fprintf(stderr, "failed to parse args: %v\n", err)
 		return 1
 	}
-
-	if *sourceType == "" {
-		fmt.Fprintf(stderr, "missing --source stdin|http|...\n")
-		fs.Usage()
+	if configPath == "" {
+		fmt.Fprintln(stderr, "missing required --config path")
 		return 1
 	}
 
-	if *programPath == "" {
-		fmt.Fprintf(stderr, "missing --program <file>\n")
-		fs.Usage()
-		return 1
-	}
-
-	prog, err := transform.LoadProgram(*programPath)
+	cfg, err := config.Load(configPath)
 	if err != nil {
-		fmt.Fprintf(stderr, "failed to load program: %v\n", err)
+		fmt.Fprintf(stderr, "failed to load config: %v\n", err)
 		return 1
 	}
 
-	// Create components
-	var source orchestrator.EventSource
+	ctx := context.Background()
 
-	switch *sourceType {
-	case "stdin":
-		source = orchestrator.NewStdinEventSource(stdin)
-	case "http":
-		source = orchestrator.NewHTTPEventSource(*addr, *metaField)
-	default:
-		fmt.Fprintf(stderr, "unknown source type: %s\n", sourceType)
+	// Load program
+	var prog *transform.Program
+	if cfg.Program != nil {
+		prog = cfg.Program
+	} else if cfg.ProgramFile != "" {
+		prog, err = transform.LoadProgram(cfg.ProgramFile)
+		if err != nil {
+			fmt.Fprintf(stderr, "failed to load program: %v\n", err)
+			return 1
+		}
+	} else {
+		fmt.Fprintln(stderr, "no DSL program or program_file defined")
 		return 1
 	}
+	// Debug can come from cli flag or config, if any are true
+	if debug {
+		cfg.Debug = true
+	}
 
-	//source := orchestrator.NewStdinEventSource(stdin)
-	writer := orchestrator.NewStdoutWriter(stdout)
-
-	// Run the Loop
-	err = orchestrator.New(prog, *debug).RunLoop(ctx, source, writer)
+	// Load source
+	source, err := sources.FromPlugin(ctx, cfg.Source, stdin)
 	if err != nil {
-		fmt.Fprintf(stderr, "execution error: %v\n", err)
+		fmt.Fprintf(stderr, "failed to load source: %v\n", err)
+		return 1
+	}
+	defer source.Close()
+
+	// Load output
+	output, err := writers.FromPlugin(cfg.Output, stdout)
+	if err != nil {
+		fmt.Fprintf(stderr, "failed to load output: %v\n", err)
+		return 1
+	}
+
+	// Run orchestrator
+	o := orchestrator.New(prog, cfg.Debug)
+	if err := o.RunLoop(ctx, source, output); err != nil {
+		fmt.Fprintf(stderr, "orchestrator failed: %v\n", err)
 		return 1
 	}
 

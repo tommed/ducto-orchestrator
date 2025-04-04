@@ -1,4 +1,4 @@
-package orchestrator
+package writers
 
 import (
 	"encoding/json"
