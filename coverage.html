@@ -606,7 +606,11 @@ import (
 func FromPlugin(block config.PluginBlock, stdout io.Writer) (OutputWriter, error) <span class="cov0" title="0">{
         switch block.Type </span>{
         case "stdout":<span class="cov0" title="0">
-                return NewStdoutWriter(stdout), nil</span>
+                opts, err := config.Decode[StdoutOptions](block.Config)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">return NewStdoutWriter(stdout, *opts), nil</span>
 
         default:<span class="cov0" title="0">
                 return nil, fmt.Errorf("unsupported output type: %q", block.Type)</span>
@@ -621,19 +625,26 @@ import (
         "io"
 )
 
-type stdoutWriter struct {
-        writer io.Writer
+type StdoutOptions struct {
+        Pretty bool `mapstructure:"pretty"`
 }
 
-func NewStdoutWriter(stdout io.Writer) OutputWriter <span class="cov8" title="1">{
-        return &amp;stdoutWriter{writer: stdout}
+type stdoutWriter struct {
+        writer io.Writer
+        opts   StdoutOptions
+}
+
+func NewStdoutWriter(stdout io.Writer, opts StdoutOptions) OutputWriter <span class="cov8" title="1">{
+        return &amp;stdoutWriter{writer: stdout, opts: opts}
 }</span>
 
 func (w *stdoutWriter) WriteOutput(data map[string]interface{}) error <span class="cov8" title="1">{
         encoder := json.NewEncoder(w.writer)
-        encoder.SetIndent("", "  ")
-        return encoder.Encode(data)
-}</span>
+        if w.opts.Pretty </span><span class="cov8" title="1">{
+                encoder.SetIndent("", "  ")
+        }</span>
+        <span class="cov8" title="1">return encoder.Encode(data)</span>
+}
 </pre>
 		
 		</div>
