@@ -1,0 +1,9 @@
+program_file: simplest.json
+
+source:
+  type: stdin
+
+output:
+  type: stdout
+  config:
+    pretty: true

@@ -13,15 +13,15 @@ LINTER_OPTS=--timeout=2m
 # General Targets
 # ----------------------
 
-.PHONY: all check ci lint test-unit test-e2e test-full coverage example-simplest clean # build-all ducto-orchestrator-macos ducto-orchestrator-windows
+.PHONY: all check ci lint test-unit test-e2e test-full coverage example-simplest clean build-all ducto-orchestrator-macos ducto-orchestrator-windows
 
 all: check
 
 check: lint test-full coverage
 
-#build-all: ducto-orchestrator-macos ducto-orchestrator-windows
+build-all: ducto-orchestrator-macos ducto-orchestrator-windows
 
-ci: check # build-all
+ci: check build-all
 
 clean:
 	@rm -f $(COVERAGE_OUT) $(COVERAGE_HTML) ducto-orchestrator*
@@ -68,10 +68,10 @@ example-simplest:
 	@echo "==> Building Example: Simplest"
 	echo '{"foo":"bar"}' | $(GO) run ./cmd/ducto-orchestrator -debug -program examples/simplest.json
 
-#ducto-orchestrator-macos:
-#	@echo "==> Building macOS CLI"
-#	$(GO) build -o ducto-dsl ./cmd/ducto-dsl
-#
-#ducto-orchestrator-windows:
-#	@echo "==> Building Windows CLI"
-#	GOOS=windows GOARCH=amd64 $(GO) build -o ducto-dsl.exe ./cmd/ducto-dsl
+ducto-orchestrator-macos:
+	@echo "==> Building macOS CLI"
+	GOOS=darwin GOARCH=arm64 $(GO) build -o ducto-orchestrator ./cmd/ducto-orchestrator
+
+ducto-orchestrator-windows:
+	@echo "==> Building Windows CLI"
+	GOOS=windows GOARCH=amd64 $(GO) build -o ducto-orchestrator.exe ./cmd/ducto-orchestrator

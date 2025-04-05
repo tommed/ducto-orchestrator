@@ -1,4 +1,4 @@
-package writers
+package outputs
 
 import (
 	"fmt"

@@ -36,7 +36,7 @@ type errorEventSource struct {
 	err error
 }
 
-func NewErrorEventSource(err error) *errorEventSource {
+func NewErrorEventSource(err error) EventSource {
 	return &errorEventSource{err: err}
 }
 

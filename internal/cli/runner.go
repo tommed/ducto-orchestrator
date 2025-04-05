@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/tommed/ducto-orchestrator/internal/outputs"
 	"github.com/tommed/ducto-orchestrator/internal/sources"
-	"github.com/tommed/ducto-orchestrator/internal/writers"
 	"io"
 
 	"github.com/tommed/ducto-dsl/transform"
@@ -39,7 +39,8 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	ctx := orchestrator.WithSignalContext(context.Background())
+	// Listen out for Ctl+C / Signal Interrupt
+	ctx := WithSignalContext(context.Background())
 
 	// Load program
 	var prog *transform.Program
@@ -48,7 +49,7 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	} else if cfg.ProgramFile != "" {
 		prog, err = transform.LoadProgram(cfg.ProgramFile)
 		if err != nil {
-			fmt.Fprintf(stderr, "failed to load program: %v\n", err)
+			fmt.Fprintf(stderr, "%v\n", err)
 			return 1
 		}
 	} else {
@@ -69,7 +70,7 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	defer source.Close()
 
 	// Load output
-	output, err := writers.FromPlugin(cfg.Output, stdout)
+	output, err := outputs.FromPlugin(cfg.Output, stdout)
 	if err != nil {
 		fmt.Fprintf(stderr, "failed to load output: %v\n", err)
 		return 1
