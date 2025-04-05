@@ -20,7 +20,7 @@ func TestFromPlugin(t *testing.T) {
 		wantErr assert.ErrorAssertionFunc
 	}{
 		{
-			name: "success",
+			name: "stdout success",
 			args: args{
 				block: config.PluginBlock{
 					Type: "stdout",
@@ -33,6 +33,28 @@ func TestFromPlugin(t *testing.T) {
 				if w.(*stdoutWriter).opts.Pretty != true {
 					return errors.New("pretty not applied")
 				}
+				return nil
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "http success",
+			args: args{
+				block: config.PluginBlock{
+					Type: "http",
+					Config: map[string]interface{}{
+						"url":       "https://example.com/api",
+						"method":    "PUT",
+						"env_token": "TOKEN1234",
+					},
+				},
+			},
+			want: func(w OutputWriter) error {
+				var writer = w.(*httpOutput)
+				assert.NotEmpty(t, writer.opts.URL, "URL was empty")
+				assert.NotEmpty(t, writer.opts.Method, "Method was empty")
+				assert.NotEmpty(t, writer.opts.EnvToken, "EnvToken was empty")
+				assert.NotNil(t, writer.client, "Client was nil")
 				return nil
 			},
 			wantErr: assert.NoError,
@@ -72,7 +94,12 @@ func TestFromPlugin(t *testing.T) {
 			if !tt.wantErr(t, err, fmt.Sprintf("FromPlugin(%v, %v)", tt.args.block, stdout)) {
 				return
 			}
-			assert.NoError(t, tt.want(got), "FromPlugin(%v, %v)", tt.args.block, stdout)
+			err = tt.want(got)
+			assert.NoError(t, err, "FromPlugin(%v, %v)", tt.args.block, stdout)
+			if err != nil || got == nil {
+				return
+			}
+			_ = got.WriteOutput(map[string]interface{}{"test": "test"})
 		})
 	}
 }

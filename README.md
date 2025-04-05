@@ -108,6 +108,7 @@ output:
 
 - [x] Local CLI
 - [x] HTTP Trigger Support
+- [x] HTTP PUT/POST Output Writer
 - [ ] GCP Edition (Cloud Function: pubsub → pubsub)
 - [ ] Feature Flag Processor
 - [ ] Output Attribute Projection

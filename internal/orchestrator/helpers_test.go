@@ -32,3 +32,20 @@ func (s *SubjectEventSource) Close() error {
 	}
 	return nil
 }
+
+type fakeWriter struct {
+	Written map[string]interface{}
+}
+
+func (f *fakeWriter) WriteOutput(data map[string]interface{}) error {
+	f.Written = data
+	return nil
+}
+
+type failingWriter struct {
+	err error
+}
+
+func (f *failingWriter) WriteOutput(data map[string]interface{}) error {
+	return f.err
+}
