@@ -1,0 +1,8 @@
+source:
+  type: stdin
+  config: {}
+output:
+  type: stdout
+  config: {}
+
+program_file: this_does_not_exist.json

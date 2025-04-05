@@ -1,0 +1,14 @@
+program:
+  version: 1
+  on_error: 'fail'
+  instructions:
+    - op: fail
+      value: 'intentional failure'
+
+source:
+  type: stdin
+
+output:
+  type: stdout
+  config:
+    pretty: true

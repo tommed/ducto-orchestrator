@@ -1,0 +1,6 @@
+source:
+  type: stdin
+  config: {}
+output:
+  type: stdout
+  config: {}

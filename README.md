@@ -73,11 +73,11 @@ go install github.com/tommed/ducto-orchestrator/cmd/ducto-orchestrator@latest
 ### Run Example (stdin → transform → stdout)
 
 ```bash
-echo '{"foo": "bar"}' | ducto-orchestrator -config examples/config.yaml
+echo '{"foo": "bar"}' | ducto-orchestrator -config examples/simplest.yaml
 ```
 
 ```yaml
-# example/config.yaml
+# example/http-source.yaml
 
 # Set here, or use -debug when calling the orchestrator
 debug: true

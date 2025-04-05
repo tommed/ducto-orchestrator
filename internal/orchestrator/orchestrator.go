@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/tommed/ducto-dsl/transform"
+	"github.com/tommed/ducto-orchestrator/internal/outputs"
 	"github.com/tommed/ducto-orchestrator/internal/sources"
-	"github.com/tommed/ducto-orchestrator/internal/writers"
 )
 
 type Orchestrator struct {
@@ -20,7 +20,7 @@ func New(program *transform.Program, debug bool) *Orchestrator {
 	}
 }
 
-func (o *Orchestrator) RunLoop(ctx context.Context, source sources.EventSource, writer writers.OutputWriter) error {
+func (o *Orchestrator) RunLoop(ctx context.Context, source sources.EventSource, writer outputs.OutputWriter) error {
 
 	// Setup Source
 	events, err := source.Start(ctx)
@@ -50,7 +50,7 @@ func (o *Orchestrator) RunLoop(ctx context.Context, source sources.EventSource, 
 	}
 }
 
-func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}, writer writers.OutputWriter) error {
+func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}, writer outputs.OutputWriter) error {
 
 	// Context (with flags)
 	ctx = context.WithValue(ctx,

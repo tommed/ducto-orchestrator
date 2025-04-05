@@ -57,27 +57,27 @@
 				
 				<option value="file0">github.com/tommed/ducto-orchestrator/cmd/ducto-orchestrator/main.go (0.0%)</option>
 				
-				<option value="file1">github.com/tommed/ducto-orchestrator/internal/cli/runner.go (0.0%)</option>
+				<option value="file1">github.com/tommed/ducto-orchestrator/internal/cli/runner.go (100.0%)</option>
 				
-				<option value="file2">github.com/tommed/ducto-orchestrator/internal/config/config.go (0.0%)</option>
+				<option value="file2">github.com/tommed/ducto-orchestrator/internal/cli/signal.go (100.0%)</option>
 				
-				<option value="file3">github.com/tommed/ducto-orchestrator/internal/orchestrator/orchestrator.go (85.0%)</option>
+				<option value="file3">github.com/tommed/ducto-orchestrator/internal/config/config.go (85.7%)</option>
 				
-				<option value="file4">github.com/tommed/ducto-orchestrator/internal/orchestrator/signal.go (83.3%)</option>
+				<option value="file4">github.com/tommed/ducto-orchestrator/internal/orchestrator/orchestrator.go (100.0%)</option>
 				
-				<option value="file5">github.com/tommed/ducto-orchestrator/internal/sources/http.go (73.1%)</option>
+				<option value="file5">github.com/tommed/ducto-orchestrator/internal/outputs/output.go (0.0%)</option>
 				
-				<option value="file6">github.com/tommed/ducto-orchestrator/internal/sources/input.go (60.0%)</option>
+				<option value="file6">github.com/tommed/ducto-orchestrator/internal/outputs/plugin.go (100.0%)</option>
 				
-				<option value="file7">github.com/tommed/ducto-orchestrator/internal/sources/plugin.go (0.0%)</option>
+				<option value="file7">github.com/tommed/ducto-orchestrator/internal/outputs/stdout.go (100.0%)</option>
 				
-				<option value="file8">github.com/tommed/ducto-orchestrator/internal/sources/stdin.go (100.0%)</option>
+				<option value="file8">github.com/tommed/ducto-orchestrator/internal/sources/http.go (73.1%)</option>
 				
-				<option value="file9">github.com/tommed/ducto-orchestrator/internal/writers/output.go (0.0%)</option>
+				<option value="file9">github.com/tommed/ducto-orchestrator/internal/sources/input.go (60.0%)</option>
 				
-				<option value="file10">github.com/tommed/ducto-orchestrator/internal/writers/plugin.go (0.0%)</option>
+				<option value="file10">github.com/tommed/ducto-orchestrator/internal/sources/plugin.go (0.0%)</option>
 				
-				<option value="file11">github.com/tommed/ducto-orchestrator/internal/writers/stdout.go (100.0%)</option>
+				<option value="file11">github.com/tommed/ducto-orchestrator/internal/sources/stdin.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -118,8 +118,8 @@ import (
         "context"
         "flag"
         "fmt"
+        "github.com/tommed/ducto-orchestrator/internal/outputs"
         "github.com/tommed/ducto-orchestrator/internal/sources"
-        "github.com/tommed/ducto-orchestrator/internal/writers"
         "io"
 
         "github.com/tommed/ducto-dsl/transform"
@@ -129,7 +129,7 @@ import (
 )
 
 //goland:noinspection GoUnhandledErrorResult
-func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int <span class="cov0" title="0">{
+func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int <span class="cov10" title="10">{
         fs := flag.NewFlagSet("ducto-orchestrator", flag.ContinueOnError)
         fs.SetOutput(stderr)
 
@@ -138,69 +138,95 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int <span cla
         fs.StringVar(&amp;configPath, "config", "", "Path to the config file")
         fs.BoolVar(&amp;debug, "debug", false, "Enable debug mode")
 
-        if err := fs.Parse(args); err != nil </span><span class="cov0" title="0">{
+        if err := fs.Parse(args); err != nil </span><span class="cov1" title="1">{
                 fmt.Fprintf(stderr, "failed to parse args: %v\n", err)
                 return 1
         }</span>
-        <span class="cov0" title="0">if configPath == "" </span><span class="cov0" title="0">{
+        <span class="cov9" title="9">if configPath == "" </span><span class="cov1" title="1">{
                 fmt.Fprintln(stderr, "missing required --config path")
                 return 1
         }</span>
 
-        <span class="cov0" title="0">cfg, err := config.Load(configPath)
-        if err != nil </span><span class="cov0" title="0">{
+        <span class="cov9" title="8">cfg, err := config.Load(configPath)
+        if err != nil </span><span class="cov1" title="1">{
                 fmt.Fprintf(stderr, "failed to load config: %v\n", err)
                 return 1
         }</span>
 
-        <span class="cov0" title="0">ctx := orchestrator.WithSignalContext(context.Background())
+        // Listen out for Ctl+C / Signal Interrupt
+        <span class="cov8" title="7">ctx := WithSignalContext(context.Background())
 
         // Load program
         var prog *transform.Program
-        if cfg.Program != nil </span><span class="cov0" title="0">{
+        if cfg.Program != nil </span><span class="cov3" title="2">{
                 prog = cfg.Program
-        }</span> else<span class="cov0" title="0"> if cfg.ProgramFile != "" </span><span class="cov0" title="0">{
+        }</span> else<span class="cov7" title="5"> if cfg.ProgramFile != "" </span><span class="cov6" title="4">{
                 prog, err = transform.LoadProgram(cfg.ProgramFile)
-                if err != nil </span><span class="cov0" title="0">{
-                        fmt.Fprintf(stderr, "failed to load program: %v\n", err)
+                if err != nil </span><span class="cov1" title="1">{
+                        fmt.Fprintf(stderr, "%v\n", err)
                         return 1
                 }</span>
-        } else<span class="cov0" title="0"> {
+        } else<span class="cov1" title="1"> {
                 fmt.Fprintln(stderr, "no DSL program or program_file defined")
                 return 1
         }</span>
         // Debug can come from cli flag or config, if any are true
-        <span class="cov0" title="0">if debug </span><span class="cov0" title="0">{
+        <span class="cov7" title="5">if debug </span><span class="cov1" title="1">{
                 cfg.Debug = true
         }</span>
 
         // Load source
-        <span class="cov0" title="0">source, err := sources.FromPlugin(ctx, cfg.Source, stdin)
-        if err != nil </span><span class="cov0" title="0">{
+        <span class="cov7" title="5">source, err := sources.FromPlugin(ctx, cfg.Source, stdin)
+        if err != nil </span><span class="cov1" title="1">{
                 fmt.Fprintf(stderr, "failed to load source: %v\n", err)
                 return 1
         }</span>
-        <span class="cov0" title="0">defer source.Close()
+        <span class="cov6" title="4">defer source.Close()
 
         // Load output
-        output, err := writers.FromPlugin(cfg.Output, stdout)
-        if err != nil </span><span class="cov0" title="0">{
+        output, err := outputs.FromPlugin(cfg.Output, stdout)
+        if err != nil </span><span class="cov1" title="1">{
                 fmt.Fprintf(stderr, "failed to load output: %v\n", err)
                 return 1
         }</span>
 
         // Run orchestrator
-        <span class="cov0" title="0">o := orchestrator.New(prog, cfg.Debug)
-        if err := o.RunLoop(ctx, source, output); err != nil </span><span class="cov0" title="0">{
+        <span class="cov5" title="3">o := orchestrator.New(prog, cfg.Debug)
+        if err := o.RunLoop(ctx, source, output); err != nil </span><span class="cov1" title="1">{
                 fmt.Fprintf(stderr, "orchestrator failed: %v\n", err)
                 return 1
         }</span>
 
-        <span class="cov0" title="0">return 0</span>
+        <span class="cov3" title="2">return 0</span>
 }
 </pre>
 		
-		<pre class="file" id="file2" style="display: none">package config
+		<pre class="file" id="file2" style="display: none">package cli
+
+import (
+        "context"
+        "os"
+        "os/signal"
+        "syscall"
+)
+
+func WithSignalContext(parent context.Context) context.Context <span class="cov9" title="7">{
+        return withSignalContextRaw(parent, syscall.SIGINT, syscall.SIGTERM)
+}</span>
+
+func withSignalContextRaw(parent context.Context, signals ...os.Signal) context.Context <span class="cov10" title="8">{
+        ctx, stop := signal.NotifyContext(parent, signals...)
+
+        go func() </span><span class="cov10" title="8">{
+                &lt;-ctx.Done()
+                stop() // clean up signal handlers
+        }</span>()
+
+        <span class="cov10" title="8">return ctx</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package config
 
 import (
         "fmt"
@@ -224,35 +250,35 @@ type Config struct {
         Output PluginBlock `mapstructure:"output"`
 }
 
-func Load(path string) (*Config, error) <span class="cov0" title="0">{
+func Load(path string) (*Config, error) <span class="cov10" title="3">{
         absPath, err := filepath.Abs(path)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("get abs path: %w", err)
         }</span>
 
-        <span class="cov0" title="0">v := viper.New()
+        <span class="cov10" title="3">v := viper.New()
         v.SetConfigFile(absPath)
 
-        if err := v.ReadInConfig(); err != nil </span><span class="cov0" title="0">{
+        if err := v.ReadInConfig(); err != nil </span><span class="cov6" title="2">{
                 return nil, fmt.Errorf("failed to read config: %w", err)
         }</span>
 
-        <span class="cov0" title="0">var cfg Config
+        <span class="cov1" title="1">var cfg Config
         if err := v.Unmarshal(&amp;cfg); err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to unmarshal config: %w", err)
         }</span>
 
         // Change relative paths so they are relative to this config file NOT the current working directory.
         // This is the behaviour of the least surprise.
-        <span class="cov0" title="0">cfgDir := filepath.Dir(absPath)
-        if cfg.ProgramFile != "" &amp;&amp; !filepath.IsAbs(cfg.ProgramFile) </span><span class="cov0" title="0">{
+        <span class="cov1" title="1">cfgDir := filepath.Dir(absPath)
+        if cfg.ProgramFile != "" &amp;&amp; !filepath.IsAbs(cfg.ProgramFile) </span><span class="cov1" title="1">{
                 cfg.ProgramFile = filepath.Join(cfgDir, cfg.ProgramFile)
         }</span>
 
-        <span class="cov0" title="0">return &amp;cfg, nil</span>
+        <span class="cov1" title="1">return &amp;cfg, nil</span>
 }
 
-func Decode[T any](raw map[string]interface{}) (*T, error) <span class="cov0" title="0">{
+func Decode[T any](raw map[string]interface{}) (*T, error) <span class="cov6" title="2">{
         var target T
         dec, err := mapstructure.NewDecoder(&amp;mapstructure.DecoderConfig{
                 Result:  &amp;target,
@@ -261,21 +287,21 @@ func Decode[T any](raw map[string]interface{}) (*T, error) <span class="cov0" ti
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">if err := dec.Decode(raw); err != nil </span><span class="cov0" title="0">{
+        <span class="cov6" title="2">if err := dec.Decode(raw); err != nil </span><span class="cov1" title="1">{
                 return nil, err
         }</span>
-        <span class="cov0" title="0">return &amp;target, nil</span>
+        <span class="cov1" title="1">return &amp;target, nil</span>
 }
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">package orchestrator
+		<pre class="file" id="file4" style="display: none">package orchestrator
 
 import (
         "context"
         "fmt"
         "github.com/tommed/ducto-dsl/transform"
+        "github.com/tommed/ducto-orchestrator/internal/outputs"
         "github.com/tommed/ducto-orchestrator/internal/sources"
-        "github.com/tommed/ducto-orchestrator/internal/writers"
 )
 
 type Orchestrator struct {
@@ -283,14 +309,14 @@ type Orchestrator struct {
         Debug   bool
 }
 
-func New(program *transform.Program, debug bool) *Orchestrator <span class="cov6" title="2">{
+func New(program *transform.Program, debug bool) *Orchestrator <span class="cov4" title="2">{
         return &amp;Orchestrator{
                 Program: program,
                 Debug:   debug,
         }
 }</span>
 
-func (o *Orchestrator) RunLoop(ctx context.Context, source sources.EventSource, writer writers.OutputWriter) error <span class="cov10" title="3">{
+func (o *Orchestrator) RunLoop(ctx context.Context, source sources.EventSource, writer outputs.OutputWriter) error <span class="cov10" title="5">{
 
         // Setup Source
         events, err := source.Start(ctx)
@@ -299,28 +325,28 @@ func (o *Orchestrator) RunLoop(ctx context.Context, source sources.EventSource, 
         }</span>
 
         // Teardown Source
-        <span class="cov6" title="2">defer func(source sources.EventSource) </span><span class="cov6" title="2">{
+        <span class="cov8" title="4">defer func(source sources.EventSource) </span><span class="cov8" title="4">{
                 _ = source.Close()
         }</span>(source)
 
-        <span class="cov6" title="2">for </span><span class="cov10" title="3">{
+        <span class="cov8" title="4">for </span><span class="cov10" title="5">{
                 select </span>{
                 case &lt;-ctx.Done():<span class="cov1" title="1">
                         return ctx.Err()</span>
 
-                case evt, ok := &lt;-events:<span class="cov6" title="2">
+                case evt, ok := &lt;-events:<span class="cov8" title="4">
                         if !ok </span><span class="cov1" title="1">{
                                 return nil // stream closed naturally
                         }</span>
 
-                        <span class="cov1" title="1">if err := o.RunOnce(ctx, evt, writer); err != nil </span><span class="cov0" title="0">{
+                        <span class="cov7" title="3">if err := o.RunOnce(ctx, evt, writer); err != nil </span><span class="cov4" title="2">{
                                 return err
                         }</span>
                 }
         }
 }
 
-func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}, writer writers.OutputWriter) error <span class="cov6" title="2">{
+func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}, writer outputs.OutputWriter) error <span class="cov8" title="4">{
 
         // Context (with flags)
         ctx = context.WithValue(ctx,
@@ -328,45 +354,101 @@ func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}
 
         // Apply transformation
         output, err := transform.New().Apply(ctx, input, o.Program)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to apply program: %w", err)
         }</span>
 
         // Write Output
-        <span class="cov6" title="2">if err := writer.WriteOutput(output); err != nil </span><span class="cov0" title="0">{
+        <span class="cov7" title="3">if err := writer.WriteOutput(output); err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to write output: %w", err)
         }</span>
 
-        <span class="cov6" title="2">return nil</span>
+        <span class="cov4" title="2">return nil</span>
 }
 </pre>
 		
-		<pre class="file" id="file4" style="display: none">package orchestrator
+		<pre class="file" id="file5" style="display: none">package outputs
 
-import (
-        "context"
-        "os"
-        "os/signal"
-        "syscall"
-)
+type OutputWriter interface {
+        WriteOutput(map[string]interface{}) error
+}
 
-func WithSignalContext(parent context.Context) context.Context <span class="cov0" title="0">{
-        return withSignalContextRaw(parent, syscall.SIGINT, syscall.SIGTERM)
+type FakeWriter struct {
+        Written map[string]interface{}
+}
+
+func (f *FakeWriter) WriteOutput(data map[string]interface{}) error <span class="cov0" title="0">{
+        f.Written = data
+        return nil
 }</span>
 
-func withSignalContextRaw(parent context.Context, signals ...os.Signal) context.Context <span class="cov8" title="1">{
-        ctx, stop := signal.NotifyContext(parent, signals...)
+func NewFailingWriter(err error) OutputWriter <span class="cov0" title="0">{
+        return &amp;failingWriter{err: err}
+}</span>
 
-        go func() </span><span class="cov8" title="1">{
-                &lt;-ctx.Done()
-                stop() // clean up signal handlers
-        }</span>()
+type failingWriter struct {
+        err error
+}
 
-        <span class="cov8" title="1">return ctx</span>
+func (f *failingWriter) WriteOutput(data map[string]interface{}) error <span class="cov0" title="0">{
+        return f.err
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package outputs
+
+import (
+        "fmt"
+        "io"
+
+        "github.com/tommed/ducto-orchestrator/internal/config"
+)
+
+func FromPlugin(block config.PluginBlock, stdout io.Writer) (OutputWriter, error) <span class="cov10" title="3">{
+        switch block.Type </span>{
+        case "stdout":<span class="cov6" title="2">
+                opts, err := config.Decode[StdoutOptions](block.Config)
+                if err != nil </span><span class="cov1" title="1">{
+                        return nil, err
+                }</span>
+                <span class="cov1" title="1">return NewStdoutWriter(stdout, *opts), nil</span>
+
+        default:<span class="cov1" title="1">
+                return nil, fmt.Errorf("unsupported output type: %q", block.Type)</span>
+        }
 }
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package sources
+		<pre class="file" id="file7" style="display: none">package outputs
+
+import (
+        "encoding/json"
+        "io"
+)
+
+type StdoutOptions struct {
+        Pretty bool `mapstructure:"pretty"`
+}
+
+type stdoutWriter struct {
+        writer io.Writer
+        opts   StdoutOptions
+}
+
+func NewStdoutWriter(stdout io.Writer, opts StdoutOptions) OutputWriter <span class="cov10" title="2">{
+        return &amp;stdoutWriter{writer: stdout, opts: opts}
+}</span>
+
+func (w *stdoutWriter) WriteOutput(data map[string]interface{}) error <span class="cov1" title="1">{
+        encoder := json.NewEncoder(w.writer)
+        if w.opts.Pretty </span><span class="cov1" title="1">{
+                encoder.SetIndent("", "  ")
+        }</span>
+        <span class="cov1" title="1">return encoder.Encode(data)</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package sources
 
 import (
         "context"
@@ -459,7 +541,7 @@ func (h *httpEventSource) Close() error <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package sources
+		<pre class="file" id="file9" style="display: none">package sources
 
 import "context"
 
@@ -497,7 +579,7 @@ type errorEventSource struct {
         err error
 }
 
-func NewErrorEventSource(err error) *errorEventSource <span class="cov0" title="0">{
+func NewErrorEventSource(err error) EventSource <span class="cov0" title="0">{
         return &amp;errorEventSource{err: err}
 }</span>
 
@@ -510,7 +592,7 @@ func (e *errorEventSource) Close() error <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package sources
+		<pre class="file" id="file10" style="display: none">package sources
 
 import (
         "context"
@@ -538,7 +620,7 @@ func FromPlugin(ctx context.Context, block config.PluginBlock, stdin io.Reader) 
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package sources
+		<pre class="file" id="file11" style="display: none">package sources
 
 import (
         "context"
@@ -575,75 +657,6 @@ func (s *stdinEventSource) Close() error <span class="cov10" title="3">{
                 return c.Close()
         }</span>
         <span class="cov6" title="2">return nil</span>
-}
-</pre>
-		
-		<pre class="file" id="file9" style="display: none">package writers
-
-type OutputWriter interface {
-        WriteOutput(map[string]interface{}) error
-}
-
-type FakeWriter struct {
-        Written map[string]interface{}
-}
-
-func (f *FakeWriter) WriteOutput(data map[string]interface{}) error <span class="cov0" title="0">{
-        f.Written = data
-        return nil
-}</span>
-</pre>
-		
-		<pre class="file" id="file10" style="display: none">package writers
-
-import (
-        "fmt"
-        "io"
-
-        "github.com/tommed/ducto-orchestrator/internal/config"
-)
-
-func FromPlugin(block config.PluginBlock, stdout io.Writer) (OutputWriter, error) <span class="cov0" title="0">{
-        switch block.Type </span>{
-        case "stdout":<span class="cov0" title="0">
-                opts, err := config.Decode[StdoutOptions](block.Config)
-                if err != nil </span><span class="cov0" title="0">{
-                        return nil, err
-                }</span>
-                <span class="cov0" title="0">return NewStdoutWriter(stdout, *opts), nil</span>
-
-        default:<span class="cov0" title="0">
-                return nil, fmt.Errorf("unsupported output type: %q", block.Type)</span>
-        }
-}
-</pre>
-		
-		<pre class="file" id="file11" style="display: none">package writers
-
-import (
-        "encoding/json"
-        "io"
-)
-
-type StdoutOptions struct {
-        Pretty bool `mapstructure:"pretty"`
-}
-
-type stdoutWriter struct {
-        writer io.Writer
-        opts   StdoutOptions
-}
-
-func NewStdoutWriter(stdout io.Writer, opts StdoutOptions) OutputWriter <span class="cov8" title="1">{
-        return &amp;stdoutWriter{writer: stdout, opts: opts}
-}</span>
-
-func (w *stdoutWriter) WriteOutput(data map[string]interface{}) error <span class="cov8" title="1">{
-        encoder := json.NewEncoder(w.writer)
-        if w.opts.Pretty </span><span class="cov8" title="1">{
-                encoder.SetIndent("", "  ")
-        }</span>
-        <span class="cov8" title="1">return encoder.Encode(data)</span>
 }
 </pre>
 		

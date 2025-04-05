@@ -1,0 +1,23 @@
+debug: true
+
+program:
+  version: 1
+  on_error: 'capture'
+  instructions:
+    - op: set
+      key: greeting
+      value: 'hello world'
+    - op: noop
+    - op: delete
+      key: hello
+
+source:
+  type: http
+  config:
+    addr: ":8080"
+    meta_field: "_http"
+
+output:
+  type: stdout
+  config:
+    pretty: true
