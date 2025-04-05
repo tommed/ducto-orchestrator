@@ -65,7 +65,7 @@
 				
 				<option value="file4">github.com/tommed/ducto-orchestrator/internal/orchestrator/orchestrator.go (100.0%)</option>
 				
-				<option value="file5">github.com/tommed/ducto-orchestrator/internal/outputs/http.go (83.9%)</option>
+				<option value="file5">github.com/tommed/ducto-orchestrator/internal/outputs/http.go (90.3%)</option>
 				
 				<option value="file6">github.com/tommed/ducto-orchestrator/internal/outputs/plugin.go (90.0%)</option>
 				
@@ -217,7 +217,7 @@ func WithSignalContext(parent context.Context) context.Context <span class="cov9
 func withSignalContextRaw(parent context.Context, signals ...os.Signal) context.Context <span class="cov10" title="8">{
         ctx, stop := signal.NotifyContext(parent, signals...)
 
-        go func() </span><span class="cov9" title="7">{
+        go func() </span><span class="cov10" title="8">{
                 &lt;-ctx.Done()
                 stop() // clean up signal handlers
         }</span>()
@@ -391,14 +391,14 @@ type HTTPOptions struct {
         EnvToken  string `mapstructure:"env_token"` // Name of env token to get token from
 }
 
-func (opts *HTTPOptions) Validate() error <span class="cov10" title="4">{
-        if opts.URL == "" </span><span class="cov0" title="0">{
+func (opts *HTTPOptions) Validate() error <span class="cov10" title="7">{
+        if opts.URL == "" </span><span class="cov1" title="1">{
                 return errors.New("url is required")
         }</span>
-        <span class="cov10" title="4">if opts.Method == "" </span><span class="cov0" title="0">{
+        <span class="cov9" title="6">if opts.Method == "" </span><span class="cov1" title="1">{
                 opts.Method = http.MethodPost
         }</span>
-        <span class="cov10" title="4">return nil</span>
+        <span class="cov9" title="6">return nil</span>
 }
 
 type httpOutput struct {
@@ -413,34 +413,34 @@ func NewHTTPWriter(opts HTTPOptions) OutputWriter <span class="cov1" title="1">{
 }</span>
 
 // NewHTTPWriterWithClient allows injection of a custom HTTP client (for testing).
-func NewHTTPWriterWithClient(opts HTTPOptions, client *http.Client) OutputWriter <span class="cov10" title="4">{
+func NewHTTPWriterWithClient(opts HTTPOptions, client *http.Client) OutputWriter <span class="cov7" title="4">{
         if err := opts.Validate(); err != nil </span><span class="cov0" title="0">{
                 panic(fmt.Sprintf("invalid HTTPOptions: %v", err))</span>
         }
-        <span class="cov10" title="4">return &amp;httpOutput{
+        <span class="cov7" title="4">return &amp;httpOutput{
                 opts:   opts,
                 client: client,
         }</span>
 }
 
 // WriteOutput sends the JSON payload to the configured endpoint.
-func (h *httpOutput) WriteOutput(input map[string]interface{}) error <span class="cov10" title="4">{
+func (h *httpOutput) WriteOutput(input map[string]interface{}) error <span class="cov7" title="4">{
         data, err := json.Marshal(input)
         if err != nil </span><span class="cov1" title="1">{
                 return err
         }</span>
 
-        <span class="cov8" title="3">req, err := http.NewRequest(h.opts.Method, h.opts.URL, bytes.NewReader(data))
+        <span class="cov6" title="3">req, err := http.NewRequest(h.opts.Method, h.opts.URL, bytes.NewReader(data))
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
         // Security handling
-        <span class="cov8" title="3">token := h.opts.Token
+        <span class="cov6" title="3">token := h.opts.Token
         if h.opts.EnvToken != "" </span><span class="cov1" title="1">{
                 token = os.Getenv(h.opts.EnvToken)
         }</span>
-        <span class="cov8" title="3">if token != "" </span><span class="cov1" title="1">{
+        <span class="cov6" title="3">if token != "" </span><span class="cov1" title="1">{
                 tokenType := h.opts.TokenType
                 if tokenType == "" </span><span class="cov1" title="1">{
                         tokenType = "Bearer"
@@ -449,7 +449,7 @@ func (h *httpOutput) WriteOutput(input map[string]interface{}) error <span class
         }
 
         // Content type (which we could eventually inject if needed)
-        <span class="cov8" title="3">req.Header.Set("Content-Type", "application/json")
+        <span class="cov6" title="3">req.Header.Set("Content-Type", "application/json")
 
         // Do the request
         resp, err := h.client.Do(req)
@@ -458,14 +458,14 @@ func (h *httpOutput) WriteOutput(input map[string]interface{}) error <span class
         }</span>
 
         //goland:noinspection GoUnhandledErrorResult
-        <span class="cov8" title="3">defer resp.Body.Close()
+        <span class="cov6" title="3">defer resp.Body.Close()
 
         // Validate the status code
         if h.opts.ExpectStatusCode &gt; 0 &amp;&amp; resp.StatusCode != h.opts.ExpectStatusCode </span><span class="cov1" title="1">{
                 return fmt.Errorf("expected status code %d but got %d", h.opts.ExpectStatusCode, resp.StatusCode)
         }</span>
 
-        <span class="cov5" title="2">return nil</span>
+        <span class="cov4" title="2">return nil</span>
 }
 </pre>
 		

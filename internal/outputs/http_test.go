@@ -1,6 +1,7 @@
 package outputs
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -8,6 +9,50 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestHTTPOptions_Validate(t *testing.T) {
+	type args struct {
+		opts HTTPOptions
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr error
+	}{
+		{
+			name: "valid",
+			args: args{
+				opts: HTTPOptions{
+					URL:    "https://example.com",
+					Method: http.MethodPost,
+				},
+			},
+		},
+		{
+			name: "bad url",
+			args: args{
+				opts: HTTPOptions{
+					Method: http.MethodPost,
+				},
+			},
+			wantErr: errors.New("url is required"),
+		},
+		{
+			name: "default method",
+			args: args{
+				opts: HTTPOptions{
+					URL: "https://example.com",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.args.opts.Validate()
+			assert.Equal(t, tt.wantErr, err)
+		})
+	}
+}
 
 func TestHTTPWriter_SuccessfulRequest(t *testing.T) {
 	mockClient := newMockClient(func(req *http.Request) *http.Response {
