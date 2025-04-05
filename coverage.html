@@ -65,9 +65,9 @@
 				
 				<option value="file4">github.com/tommed/ducto-orchestrator/internal/orchestrator/orchestrator.go (100.0%)</option>
 				
-				<option value="file5">github.com/tommed/ducto-orchestrator/internal/outputs/output.go (0.0%)</option>
+				<option value="file5">github.com/tommed/ducto-orchestrator/internal/outputs/http.go (77.4%)</option>
 				
-				<option value="file6">github.com/tommed/ducto-orchestrator/internal/outputs/plugin.go (100.0%)</option>
+				<option value="file6">github.com/tommed/ducto-orchestrator/internal/outputs/plugin.go (60.0%)</option>
 				
 				<option value="file7">github.com/tommed/ducto-orchestrator/internal/outputs/stdout.go (100.0%)</option>
 				
@@ -369,30 +369,104 @@ func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}
 		
 		<pre class="file" id="file5" style="display: none">package outputs
 
-type OutputWriter interface {
-        WriteOutput(map[string]interface{}) error
+import (
+        "bytes"
+        "encoding/json"
+        "errors"
+        "fmt"
+        "net/http"
+        "os"
+        "time"
+)
+
+type HTTPOptions struct {
+        URL              string `mapstructure:"url"`
+        Method           string `mapstructure:"method"` // Assumes POST if unset
+        TimeoutSeconds   int    `mapstructure:"timeout_seconds"`
+        ExpectStatusCode int    `mapstructure:"expect_status_code"` // Optional
+
+        // For tokens, you can embed or access via an environment variable
+        TokenType string `mapstructure:"token_type"` // Assumes Bearer if not set but Token/EnvToken is
+        Token     string `mapstructure:"token"`
+        EnvToken  string `mapstructure:"env_token"` // Name of env token to get token from
 }
 
-type FakeWriter struct {
-        Written map[string]interface{}
+func (opts *HTTPOptions) Validate() error <span class="cov10" title="3">{
+        if opts.URL == "" </span><span class="cov0" title="0">{
+                return errors.New("url is required")
+        }</span>
+        <span class="cov10" title="3">if opts.Method == "" </span><span class="cov0" title="0">{
+                opts.Method = http.MethodPost
+        }</span>
+        <span class="cov10" title="3">return nil</span>
 }
 
-func (f *FakeWriter) WriteOutput(data map[string]interface{}) error <span class="cov0" title="0">{
-        f.Written = data
-        return nil
-}</span>
-
-func NewFailingWriter(err error) OutputWriter <span class="cov0" title="0">{
-        return &amp;failingWriter{err: err}
-}</span>
-
-type failingWriter struct {
-        err error
+type httpOutput struct {
+        opts   HTTPOptions
+        client *http.Client // Set in unit tests manually
 }
 
-func (f *failingWriter) WriteOutput(data map[string]interface{}) error <span class="cov0" title="0">{
-        return f.err
+func NewHTTPWriter(opts HTTPOptions) OutputWriter <span class="cov0" title="0">{
+        return NewHTTPWriterWithClient(opts, &amp;http.Client{
+                Timeout: time.Duration(opts.TimeoutSeconds) * time.Second,
+        })
 }</span>
+
+// NewHTTPWriterWithClient allows injection of a custom HTTP client (for testing).
+func NewHTTPWriterWithClient(opts HTTPOptions, client *http.Client) OutputWriter <span class="cov10" title="3">{
+        if err := opts.Validate(); err != nil </span><span class="cov0" title="0">{
+                panic(fmt.Sprintf("invalid HTTPOptions: %v", err))</span>
+        }
+        <span class="cov10" title="3">return &amp;httpOutput{
+                opts:   opts,
+                client: client,
+        }</span>
+}
+
+// WriteOutput sends the JSON payload to the configured endpoint.
+func (h *httpOutput) WriteOutput(input map[string]interface{}) error <span class="cov10" title="3">{
+        data, err := json.Marshal(input)
+        if err != nil </span><span class="cov1" title="1">{
+                return err
+        }</span>
+
+        <span class="cov6" title="2">req, err := http.NewRequest(h.opts.Method, h.opts.URL, bytes.NewReader(data))
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        // Security handling
+        <span class="cov6" title="2">token := h.opts.Token
+        if h.opts.EnvToken != "" </span><span class="cov0" title="0">{
+                token = os.Getenv(h.opts.EnvToken)
+        }</span>
+        <span class="cov6" title="2">if token != "" </span><span class="cov1" title="1">{
+                tokenType := h.opts.TokenType
+                if tokenType == "" </span><span class="cov1" title="1">{
+                        tokenType = "Bearer"
+                }</span>
+                <span class="cov1" title="1">req.Header.Set("Authorization", fmt.Sprintf("%s %s", tokenType, token))</span>
+        }
+
+        // Content type (which we could eventually inject if needed)
+        <span class="cov6" title="2">req.Header.Set("Content-Type", "application/json")
+
+        // Do the request
+        resp, err := h.client.Do(req)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        //goland:noinspection GoUnhandledErrorResult
+        <span class="cov6" title="2">defer resp.Body.Close()
+
+        // Validate the status code
+        if h.opts.ExpectStatusCode &gt; 0 &amp;&amp; resp.StatusCode != h.opts.ExpectStatusCode </span><span class="cov1" title="1">{
+                return fmt.Errorf("expected status code %d but got %d", h.opts.ExpectStatusCode, resp.StatusCode)
+        }</span>
+
+        <span class="cov1" title="1">return nil</span>
+}
 </pre>
 		
 		<pre class="file" id="file6" style="display: none">package outputs
@@ -412,6 +486,13 @@ func FromPlugin(block config.PluginBlock, stdout io.Writer) (OutputWriter, error
                         return nil, err
                 }</span>
                 <span class="cov1" title="1">return NewStdoutWriter(stdout, *opts), nil</span>
+
+        case "http":<span class="cov0" title="0">
+                opts, err := config.Decode[HTTPOptions](block.Config)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">return NewHTTPWriter(*opts), nil</span>
 
         default:<span class="cov1" title="1">
                 return nil, fmt.Errorf("unsupported output type: %q", block.Type)</span>

@@ -29,7 +29,7 @@ func TestOrchestrator_RunLoop_Failure(t *testing.T) {
 			name: "failing source",
 			args: args{
 				source: sources.NewErrorEventSource(errors.New("expected setup failure")),
-				output: &outputs.FakeWriter{},
+				output: &fakeWriter{},
 				op:     transform.Instruction{Op: "noop"},
 			},
 			wantInErr: "expected setup failure",
@@ -38,7 +38,7 @@ func TestOrchestrator_RunLoop_Failure(t *testing.T) {
 			name: "failing source",
 			args: args{
 				source: sources.NewValuesEventSource(map[string]interface{}{}),
-				output: outputs.NewFailingWriter(errors.New("expected output failure")),
+				output: &failingWriter{err: errors.New("expected output failure")},
 				op:     transform.Instruction{Op: "noop"},
 			},
 			wantInErr: "expected output failure",
@@ -47,7 +47,7 @@ func TestOrchestrator_RunLoop_Failure(t *testing.T) {
 			name: "failing program",
 			args: args{
 				source: sources.NewValuesEventSource(map[string]interface{}{}),
-				output: &outputs.FakeWriter{},
+				output: &fakeWriter{},
 				op:     transform.Instruction{Op: "fail", Value: "expected operation failure"},
 			},
 			wantInErr: "execution halted due to an error",
@@ -89,7 +89,7 @@ func TestOrchestrator_RunLoop_CancelledCtx(t *testing.T) {
 	o := &Orchestrator{}
 	err := o.RunLoop(ctx,
 		source,
-		&outputs.FakeWriter{})
+		&fakeWriter{})
 	assert.Error(t, err)
 	assert.Equal(t, err.Error(), "context canceled")
 }
@@ -104,7 +104,7 @@ func TestOrchestrator_RunLoop_Success(t *testing.T) {
 
 	input := map[string]interface{}{"foo": "bar"}
 	source := sources.NewValuesEventSource(input)
-	writer := &outputs.FakeWriter{}
+	writer := &fakeWriter{}
 
 	err := New(prog, false).RunLoop(context.Background(), source, writer)
 

@@ -16,6 +16,13 @@ func FromPlugin(block config.PluginBlock, stdout io.Writer) (OutputWriter, error
 		}
 		return NewStdoutWriter(stdout, *opts), nil
 
+	case "http":
+		opts, err := config.Decode[HTTPOptions](block.Config)
+		if err != nil {
+			return nil, err
+		}
+		return NewHTTPWriter(*opts), nil
+
 	default:
 		return nil, fmt.Errorf("unsupported output type: %q", block.Type)
 	}
