@@ -25,6 +25,19 @@ func TestHTTPOptions_Validate(t *testing.T) {
 				opts: HTTPOptions{
 					URL:    "https://example.com",
 					Method: http.MethodPost,
+					Headers: map[string]string{
+						"Accept": "application/json",
+					},
+				},
+			},
+		},
+		{
+			name: "valid Cloud Events",
+			args: args{
+				opts: HTTPOptions{
+					URL:         "https://example.com",
+					Method:      http.MethodPost,
+					ContentType: "application/cloudevents+json; charset=utf-8",
 				},
 			},
 		},
@@ -56,7 +69,7 @@ func TestHTTPOptions_Validate(t *testing.T) {
 
 func TestHTTPWriter_SuccessfulRequest(t *testing.T) {
 	mockClient := newMockClient(func(req *http.Request) *http.Response {
-		assert.Equal(t, "application/json", req.Header.Get("Content-Type"))
+		assert.Equal(t, "application/json; charset=utf-8", req.Header.Get("Content-Type"))
 		assert.Equal(t, "Bearer test-token", req.Header.Get("Authorization"))
 		assert.Equal(t, "POST", req.Method)
 		assert.Equal(t, "https://example.com/api", req.URL.String())
@@ -71,6 +84,9 @@ func TestHTTPWriter_SuccessfulRequest(t *testing.T) {
 		URL:    "https://example.com/api",
 		Method: "POST",
 		Token:  "test-token",
+		Headers: map[string]string{
+			"Accept": "application/json",
+		},
 	}, mockClient)
 
 	err := writer.WriteOutput(map[string]interface{}{"foo": "bar"})

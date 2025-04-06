@@ -11,10 +11,12 @@ import (
 )
 
 type HTTPOptions struct {
-	URL              string `mapstructure:"url"`
-	Method           string `mapstructure:"method"` // Assumes POST if unset
-	TimeoutSeconds   int    `mapstructure:"timeout_seconds"`
-	ExpectStatusCode int    `mapstructure:"expect_status_code"` // Optional
+	URL              string            `mapstructure:"url"`
+	Method           string            `mapstructure:"method"` // Assumes POST if unset
+	TimeoutSeconds   int               `mapstructure:"timeout_seconds"`
+	ExpectStatusCode int               `mapstructure:"expect_status_code"` // Optional
+	ContentType      string            `mapstructure:"content_type"`       // Optional (assumes application/json)
+	Headers          map[string]string `mapstructure:"headers"`            // Optional additional headers
 
 	// For tokens, you can embed or access via an environment variable
 	TokenType string `mapstructure:"token_type"` // Assumes Bearer if not set but Token/EnvToken is
@@ -28,6 +30,9 @@ func (opts *HTTPOptions) Validate() error {
 	}
 	if opts.Method == "" {
 		opts.Method = http.MethodPost
+	}
+	if opts.ContentType == "" {
+		opts.ContentType = "application/json; charset=utf-8"
 	}
 	return nil
 }
@@ -66,6 +71,11 @@ func (h *httpOutput) WriteOutput(input map[string]interface{}) error {
 		return err
 	}
 
+	// Additional headers
+	for k, v := range h.opts.Headers {
+		req.Header.Set(k, v)
+	}
+
 	// Security handling
 	token := h.opts.Token
 	if h.opts.EnvToken != "" {
@@ -80,7 +90,7 @@ func (h *httpOutput) WriteOutput(input map[string]interface{}) error {
 	}
 
 	// Content type (which we could eventually inject if needed)
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", h.opts.ContentType)
 
 	// Do the request
 	resp, err := h.client.Do(req)
