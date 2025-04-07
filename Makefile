@@ -13,7 +13,7 @@ LINTER_OPTS=--timeout=2m
 # General Targets
 # ----------------------
 
-.PHONY: all check ci lint test-unit test-e2e test-full coverage example-simplest clean build-all ducto-orchestrator-macos ducto-orchestrator-windows start-gcp-pubsub-emulator
+.PHONY: all check ci lint test-unit test-e2e test-full coverage example-simplest clean build-all ducto-orchestrator-macos ducto-orchestrator-windows gcp-pubsub-emulator
 
 all: check
 
@@ -41,7 +41,7 @@ lint-install:
 # Testing
 # ----------------------
 
-start-gcp-pubsub-emulator:
+gcp-pubsub-emulator:
 	@echo "==> Starting Google Pub/Sub Emulator"
 	@gcloud beta emulators pubsub start --project=test-project --host-port=0.0.0.0:8085
 

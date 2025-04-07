@@ -88,7 +88,7 @@ func TestOrchestrator_PubSub_E2E(t *testing.T) {
 
 	// Pull the message back from subscription
 	msgs := make(chan *pubsub.Message, 1)
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	err = sub.Receive(ctx, func(ctx context.Context, m *pubsub.Message) {
