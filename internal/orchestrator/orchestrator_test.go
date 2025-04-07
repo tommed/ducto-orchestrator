@@ -37,7 +37,7 @@ func TestOrchestrator_RunLoop_Failure(t *testing.T) {
 		{
 			name: "failing source",
 			args: args{
-				source: sources.NewValuesEventSource(map[string]interface{}{}),
+				source: sources.NewValuesEventSourceRaw(map[string]interface{}{}),
 				output: &failingWriter{err: errors.New("expected output failure")},
 				op:     transform.Instruction{Op: "noop"},
 			},
@@ -46,7 +46,7 @@ func TestOrchestrator_RunLoop_Failure(t *testing.T) {
 		{
 			name: "failing program",
 			args: args{
-				source: sources.NewValuesEventSource(map[string]interface{}{}),
+				source: sources.NewValuesEventSourceRaw(map[string]interface{}{}),
 				output: &fakeWriter{},
 				op:     transform.Instruction{Op: "fail", Value: "expected operation failure"},
 			},
@@ -103,7 +103,7 @@ func TestOrchestrator_RunLoop_Success(t *testing.T) {
 	}
 
 	input := map[string]interface{}{"foo": "bar"}
-	source := sources.NewValuesEventSource(input)
+	source := sources.NewValuesEventSourceRaw(input)
 	writer := &fakeWriter{}
 
 	err := New(prog, false).RunLoop(context.Background(), source, writer)

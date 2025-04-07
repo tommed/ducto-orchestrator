@@ -2,6 +2,7 @@ package outputs
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"github.com/stretchr/testify/assert"
@@ -89,8 +90,9 @@ func TestFromPlugin(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
 			stdout := &bytes.Buffer{}
-			got, err := FromPlugin(tt.args.block, stdout)
+			got, err := FromPlugin(ctx, tt.args.block, stdout)
 			if !tt.wantErr(t, err, fmt.Sprintf("FromPlugin(%v, %v)", tt.args.block, stdout)) {
 				return
 			}
@@ -99,7 +101,7 @@ func TestFromPlugin(t *testing.T) {
 			if err != nil || got == nil {
 				return
 			}
-			_ = got.WriteOutput(map[string]interface{}{"test": "test"})
+			_ = got.WriteOutput(ctx, map[string]interface{}{"test": "test"})
 		})
 	}
 }

@@ -1,6 +1,7 @@
 package outputs
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 )
@@ -18,7 +19,7 @@ func NewStdoutWriter(stdout io.Writer, opts StdoutOptions) OutputWriter {
 	return &stdoutWriter{writer: stdout, opts: opts}
 }
 
-func (w *stdoutWriter) WriteOutput(data map[string]interface{}) error {
+func (w *stdoutWriter) WriteOutput(_ context.Context, data map[string]interface{}) error {
 	encoder := json.NewEncoder(w.writer)
 	if w.opts.Pretty {
 		encoder.SetIndent("", "  ")

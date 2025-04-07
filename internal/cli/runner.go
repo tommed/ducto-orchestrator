@@ -70,7 +70,7 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	defer source.Close()
 
 	// Load output
-	output, err := outputs.FromPlugin(cfg.Output, stdout)
+	output, err := outputs.FromPlugin(ctx, cfg.Output, stdout)
 	if err != nil {
 		fmt.Fprintf(stderr, "failed to load output: %v\n", err)
 		return 1

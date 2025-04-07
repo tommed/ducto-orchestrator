@@ -3,13 +3,12 @@ package orchestrator
 import (
 	"context"
 	"encoding/json"
+	"github.com/stretchr/testify/assert"
+	"github.com/tommed/ducto-dsl/transform"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/tommed/ducto-dsl/transform"
 )
 
 func TestOrchestrator_E2E_Matrix(t *testing.T) {

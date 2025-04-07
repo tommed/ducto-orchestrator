@@ -13,7 +13,7 @@ LINTER_OPTS=--timeout=2m
 # General Targets
 # ----------------------
 
-.PHONY: all check ci lint test-unit test-e2e test-full coverage example-simplest clean build-all ducto-orchestrator-macos ducto-orchestrator-windows
+.PHONY: all check ci lint test-unit test-e2e test-full coverage example-simplest clean build-all ducto-orchestrator-macos ducto-orchestrator-windows gcp-pubsub-emulator
 
 all: check
 
@@ -41,6 +41,10 @@ lint-install:
 # Testing
 # ----------------------
 
+gcp-pubsub-emulator:
+	@echo "==> Starting Google Pub/Sub Emulator"
+	@gcloud beta emulators pubsub start --project=test-project --host-port=0.0.0.0:8085
+
 test-unit:
 	@echo "==> Running short tests"
 	$(GO) test -short -coverprofile=$(COVERAGE_OUT) -covermode=atomic -v ./...
@@ -48,7 +52,7 @@ test-unit:
 
 test-full:
 	@echo "==> Running all tests"
-	$(GO) test -coverprofile=$(COVERAGE_OUT) -covermode=atomic -v ./...
+	@PUBSUB_EMULATOR_HOST=localhost:8085 GOOGLE_CLOUD_PROJECT=test-project $(GO) test -coverprofile=$(COVERAGE_OUT) -covermode=atomic -v ./...
 	$(GO) tool cover -func=$(COVERAGE_OUT)
 
 test-e2e:

@@ -2,6 +2,7 @@ package outputs
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -50,9 +51,6 @@ func NewHTTPWriter(opts HTTPOptions) OutputWriter {
 
 // NewHTTPWriterWithClient allows injection of a custom HTTP client (for testing).
 func NewHTTPWriterWithClient(opts HTTPOptions, client *http.Client) OutputWriter {
-	if err := opts.Validate(); err != nil {
-		panic(fmt.Sprintf("invalid HTTPOptions: %v", err))
-	}
 	return &httpOutput{
 		opts:   opts,
 		client: client,
@@ -60,13 +58,14 @@ func NewHTTPWriterWithClient(opts HTTPOptions, client *http.Client) OutputWriter
 }
 
 // WriteOutput sends the JSON payload to the configured endpoint.
-func (h *httpOutput) WriteOutput(input map[string]interface{}) error {
+func (h *httpOutput) WriteOutput(ctx context.Context, input map[string]interface{}) error {
 	data, err := json.Marshal(input)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest(h.opts.Method, h.opts.URL, bytes.NewReader(data))
+	// Build request with context
+	req, err := http.NewRequestWithContext(ctx, h.opts.Method, h.opts.URL, bytes.NewReader(data))
 	if err != nil {
 		return err
 	}

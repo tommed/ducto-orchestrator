@@ -27,7 +27,7 @@ func (s *stdinEventSource) Start(ctx context.Context) (<-chan map[string]interfa
 	}
 
 	// Delegate to valuesEventSource without exporting it
-	return NewValuesEventSource(input).Start(ctx)
+	return NewValuesEventSourceRaw(input).Start(ctx)
 }
 
 func (s *stdinEventSource) Close() error {

@@ -1,5 +1,7 @@
 package outputs
 
+import "context"
+
 type OutputWriter interface {
-	WriteOutput(map[string]interface{}) error
+	WriteOutput(context.Context, map[string]interface{}) error
 }
