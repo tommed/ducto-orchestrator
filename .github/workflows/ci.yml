@@ -19,16 +19,14 @@ jobs:
     services:
       # Google Pub/Sub emulator for integration testing
       pubsub:
-        image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+        image: gcr.io/google.com/cloudsdktool/google-cloud-cli:slim
         ports:
           - 8085:8085
         options: >-
           --health-cmd "curl --fail http://localhost:8085 || exit 1"
           --health-interval 5s
           --health-timeout 10s
-          --health-retries 3
-        command: >
-          gcloud beta emulators pubsub start --project=test-project --host-port=0.0.0.0:8085
+          --health-retries 5
       
 
     env:
@@ -50,6 +48,12 @@ jobs:
 
       - name: Install Linter
         run: make lint-install
+
+      - name: Start Pub/Sub Emulator
+        run: |
+          gcloud config set project "$GOOGLE_CLOUD_PROJECT"
+          gcloud beta emulators pubsub start --host-port=localhost:8085 &
+          sleep 10
 
       - name: Makefile CI
         run: make ci
