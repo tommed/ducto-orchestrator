@@ -34,12 +34,16 @@ jobs:
 
       - name: Set up Cloud SDK
         uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          install_components: 'pubsub-emulator'
 
       - name: Start Pub/Sub Emulator
         run: |
           gcloud config set project "$GOOGLE_CLOUD_PROJECT"
           gcloud beta emulators pubsub start --host-port=localhost:8085 &
           sleep 10
+        env:
+          GOOGLE_CLOUD_PROJECT: test-project
 
       - name: Makefile CI
         run: make ci
