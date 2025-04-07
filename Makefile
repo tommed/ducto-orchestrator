@@ -47,12 +47,12 @@ gcp-pubsub-emulator:
 
 test-unit:
 	@echo "==> Running short tests"
-	$(GO) test -short -coverprofile=$(COVERAGE_OUT) -covermode=atomic -v ./...
+	$(GO) test -short -coverpkg=./... -coverprofile=$(COVERAGE_OUT) -covermode=atomic -v ./...
 	$(GO) tool cover -func=$(COVERAGE_OUT)
 
 test-full:
 	@echo "==> Running all tests"
-	@PUBSUB_EMULATOR_HOST=localhost:8085 GOOGLE_CLOUD_PROJECT=test-project $(GO) test -coverprofile=$(COVERAGE_OUT) -covermode=atomic -v ./...
+	@PUBSUB_EMULATOR_HOST=localhost:8085 GOOGLE_CLOUD_PROJECT=test-project $(GO) test -coverpkg=./... -coverprofile=$(COVERAGE_OUT) -covermode=atomic -v ./...
 	$(GO) tool cover -func=$(COVERAGE_OUT)
 
 test-e2e:
