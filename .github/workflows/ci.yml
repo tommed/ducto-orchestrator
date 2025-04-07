@@ -16,23 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    services:
-      # Google Pub/Sub emulator for integration testing
-      pubsub:
-        image: gcr.io/google.com/cloudsdktool/google-cloud-cli:slim
-        ports:
-          - 8085:8085
-        options: >-
-          --health-cmd "curl --fail http://localhost:8085 || exit 1"
-          --health-interval 5s
-          --health-timeout 10s
-          --health-retries 5
-      
-
-    env:
-      # Internal Env Vars for sending Pub/Sub requests to the emulator
-      PUBSUB_EMULATOR_HOST: localhost:8085
-      GOOGLE_CLOUD_PROJECT: test-project
 
     steps:
       - name: Checkout code
@@ -48,6 +31,9 @@ jobs:
 
       - name: Install Linter
         run: make lint-install
+
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v2'
 
       - name: Start Pub/Sub Emulator
         run: |
