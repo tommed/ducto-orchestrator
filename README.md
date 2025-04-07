@@ -147,7 +147,8 @@ Please see our [Contributing Guide](./CONTRIBUTING.md).
 
 ## 🤖 Related Projects
 
-- [ducto-dsl](https://github.com/tommed/ducto-dsl) — The DSL engine powering Ducto-Orchestrator
+- [ducto-dsl](https://github.com/tommed/ducto-dsl) - The DSL engine powering Ducto-Orchestrator
+- [ducto-featureflags](https://github.com/tommed/ducto-featureflags) - Our feature flag engine
 
 ---
 
