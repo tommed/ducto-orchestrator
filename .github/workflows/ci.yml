@@ -19,7 +19,7 @@ jobs:
     services:
       # Google Pub/Sub emulator for integration testing
       pubsub:
-        image: google/cloud-sdk:latest
+        image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
         ports:
           - 8085:8085
         options: >-
@@ -29,11 +29,12 @@ jobs:
           --health-retries 3
         command: >
           gcloud beta emulators pubsub start --project=test-project --host-port=0.0.0.0:8085
+      
 
-      env:
-        # Internal Env Vars for sending Pub/Sub requests to the emulator
-        PUBSUB_EMULATOR_HOST: localhost:8085
-        GOOGLE_CLOUD_PROJECT: test-project
+    env:
+      # Internal Env Vars for sending Pub/Sub requests to the emulator
+      PUBSUB_EMULATOR_HOST: localhost:8085
+      GOOGLE_CLOUD_PROJECT: test-project
 
     steps:
       - name: Checkout code
