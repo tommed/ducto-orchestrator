@@ -61,23 +61,25 @@
 				
 				<option value="file2">github.com/tommed/ducto-orchestrator/internal/cli/signal.go (100.0%)</option>
 				
-				<option value="file3">github.com/tommed/ducto-orchestrator/internal/config/config.go (85.7%)</option>
+				<option value="file3">github.com/tommed/ducto-orchestrator/internal/config/config.go (83.3%)</option>
 				
 				<option value="file4">github.com/tommed/ducto-orchestrator/internal/orchestrator/orchestrator.go (100.0%)</option>
 				
-				<option value="file5">github.com/tommed/ducto-orchestrator/internal/outputs/http.go (88.6%)</option>
+				<option value="file5">github.com/tommed/ducto-orchestrator/internal/outputs/http.go (93.9%)</option>
 				
-				<option value="file6">github.com/tommed/ducto-orchestrator/internal/outputs/plugin.go (90.0%)</option>
+				<option value="file6">github.com/tommed/ducto-orchestrator/internal/outputs/plugin.go (85.7%)</option>
 				
-				<option value="file7">github.com/tommed/ducto-orchestrator/internal/outputs/stdout.go (100.0%)</option>
+				<option value="file7">github.com/tommed/ducto-orchestrator/internal/outputs/pubsub.go (66.7%)</option>
 				
-				<option value="file8">github.com/tommed/ducto-orchestrator/internal/sources/http.go (73.1%)</option>
+				<option value="file8">github.com/tommed/ducto-orchestrator/internal/outputs/stdout.go (100.0%)</option>
 				
-				<option value="file9">github.com/tommed/ducto-orchestrator/internal/sources/input.go (60.0%)</option>
+				<option value="file9">github.com/tommed/ducto-orchestrator/internal/sources/http.go (73.1%)</option>
 				
-				<option value="file10">github.com/tommed/ducto-orchestrator/internal/sources/plugin.go (0.0%)</option>
+				<option value="file10">github.com/tommed/ducto-orchestrator/internal/sources/input.go (100.0%)</option>
 				
-				<option value="file11">github.com/tommed/ducto-orchestrator/internal/sources/stdin.go (100.0%)</option>
+				<option value="file11">github.com/tommed/ducto-orchestrator/internal/sources/plugin.go (54.5%)</option>
+				
+				<option value="file12">github.com/tommed/ducto-orchestrator/internal/sources/stdin.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -184,7 +186,7 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int <span cla
         <span class="cov6" title="4">defer source.Close()
 
         // Load output
-        output, err := outputs.FromPlugin(cfg.Output, stdout)
+        output, err := outputs.FromPlugin(ctx, cfg.Output, stdout)
         if err != nil </span><span class="cov1" title="1">{
                 fmt.Fprintf(stderr, "failed to load output: %v\n", err)
                 return 1
@@ -210,19 +212,19 @@ import (
         "syscall"
 )
 
-func WithSignalContext(parent context.Context) context.Context <span class="cov9" title="7">{
+func WithSignalContext(parent context.Context) context.Context <span class="cov9" title="8">{
         return withSignalContextRaw(parent, syscall.SIGINT, syscall.SIGTERM)
 }</span>
 
-func withSignalContextRaw(parent context.Context, signals ...os.Signal) context.Context <span class="cov10" title="8">{
+func withSignalContextRaw(parent context.Context, signals ...os.Signal) context.Context <span class="cov10" title="9">{
         ctx, stop := signal.NotifyContext(parent, signals...)
 
-        go func() </span><span class="cov10" title="8">{
+        go func() </span><span class="cov10" title="9">{
                 &lt;-ctx.Done()
                 stop() // clean up signal handlers
         }</span>()
 
-        <span class="cov10" title="8">return ctx</span>
+        <span class="cov10" title="9">return ctx</span>
 }
 </pre>
 		
@@ -250,35 +252,39 @@ type Config struct {
         Output PluginBlock `mapstructure:"output"`
 }
 
-func Load(path string) (*Config, error) <span class="cov10" title="3">{
+func Load(path string) (*Config, error) <span class="cov10" title="11">{
         absPath, err := filepath.Abs(path)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("get abs path: %w", err)
         }</span>
 
-        <span class="cov10" title="3">v := viper.New()
+        <span class="cov10" title="11">v := viper.New()
         v.SetConfigFile(absPath)
 
-        if err := v.ReadInConfig(); err != nil </span><span class="cov6" title="2">{
+        if err := v.ReadInConfig(); err != nil </span><span class="cov5" title="3">{
                 return nil, fmt.Errorf("failed to read config: %w", err)
         }</span>
 
-        <span class="cov1" title="1">var cfg Config
+        <span class="cov8" title="8">var cfg Config
         if err := v.Unmarshal(&amp;cfg); err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to unmarshal config: %w", err)
         }</span>
 
         // Change relative paths so they are relative to this config file NOT the current working directory.
         // This is the behaviour of the least surprise.
-        <span class="cov1" title="1">cfgDir := filepath.Dir(absPath)
-        if cfg.ProgramFile != "" &amp;&amp; !filepath.IsAbs(cfg.ProgramFile) </span><span class="cov1" title="1">{
+        <span class="cov8" title="8">cfgDir := filepath.Dir(absPath)
+        if cfg.ProgramFile != "" &amp;&amp; !filepath.IsAbs(cfg.ProgramFile) </span><span class="cov7" title="5">{
                 cfg.ProgramFile = filepath.Join(cfgDir, cfg.ProgramFile)
         }</span>
 
-        <span class="cov1" title="1">return &amp;cfg, nil</span>
+        <span class="cov8" title="8">return &amp;cfg, nil</span>
 }
 
-func Decode[T any](raw map[string]interface{}) (*T, error) <span class="cov6" title="2">{
+type Options interface {
+        Validate() error
+}
+
+func Decode[T any](raw map[string]interface{}) (*T, error) <span class="cov9" title="10">{
         var target T
         dec, err := mapstructure.NewDecoder(&amp;mapstructure.DecoderConfig{
                 Result:  &amp;target,
@@ -287,10 +293,15 @@ func Decode[T any](raw map[string]interface{}) (*T, error) <span class="cov6" ti
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov6" title="2">if err := dec.Decode(raw); err != nil </span><span class="cov1" title="1">{
+        <span class="cov9" title="10">if err := dec.Decode(raw); err != nil </span><span class="cov3" title="2">{
                 return nil, err
         }</span>
-        <span class="cov1" title="1">return &amp;target, nil</span>
+        <span class="cov8" title="8">if val, ok := any(&amp;target).(Options); ok </span><span class="cov3" title="2">{
+                if err := val.Validate(); err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+        }
+        <span class="cov8" title="8">return &amp;target, nil</span>
 }
 </pre>
 		
@@ -309,44 +320,44 @@ type Orchestrator struct {
         Debug   bool
 }
 
-func New(program *transform.Program, debug bool) *Orchestrator <span class="cov4" title="2">{
+func New(program *transform.Program, debug bool) *Orchestrator <span class="cov7" title="6">{
         return &amp;Orchestrator{
                 Program: program,
                 Debug:   debug,
         }
 }</span>
 
-func (o *Orchestrator) RunLoop(ctx context.Context, source sources.EventSource, writer outputs.OutputWriter) error <span class="cov10" title="5">{
+func (o *Orchestrator) RunLoop(ctx context.Context, source sources.EventSource, writer outputs.OutputWriter) error <span class="cov9" title="9">{
 
         // Setup Source
         events, err := source.Start(ctx)
-        if err != nil </span><span class="cov1" title="1">{
+        if err != nil </span><span class="cov3" title="2">{
                 return err
         }</span>
 
         // Teardown Source
-        <span class="cov8" title="4">defer func(source sources.EventSource) </span><span class="cov8" title="4">{
+        <span class="cov8" title="7">defer func(source sources.EventSource) </span><span class="cov8" title="7">{
                 _ = source.Close()
         }</span>(source)
 
-        <span class="cov8" title="4">for </span><span class="cov10" title="5">{
+        <span class="cov8" title="7">for </span><span class="cov10" title="11">{
                 select </span>{
                 case &lt;-ctx.Done():<span class="cov1" title="1">
                         return ctx.Err()</span>
 
-                case evt, ok := &lt;-events:<span class="cov8" title="4">
-                        if !ok </span><span class="cov1" title="1">{
+                case evt, ok := &lt;-events:<span class="cov9" title="10">
+                        if !ok </span><span class="cov6" title="4">{
                                 return nil // stream closed naturally
                         }</span>
 
-                        <span class="cov7" title="3">if err := o.RunOnce(ctx, evt, writer); err != nil </span><span class="cov4" title="2">{
+                        <span class="cov7" title="6">if err := o.RunOnce(ctx, evt, writer); err != nil </span><span class="cov3" title="2">{
                                 return err
                         }</span>
                 }
         }
 }
 
-func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}, writer outputs.OutputWriter) error <span class="cov8" title="4">{
+func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}, writer outputs.OutputWriter) error <span class="cov8" title="7">{
 
         // Context (with flags)
         ctx = context.WithValue(ctx,
@@ -359,11 +370,11 @@ func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}
         }</span>
 
         // Write Output
-        <span class="cov7" title="3">if err := writer.WriteOutput(output); err != nil </span><span class="cov1" title="1">{
+        <span class="cov7" title="6">if err := writer.WriteOutput(ctx, output); err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to write output: %w", err)
         }</span>
 
-        <span class="cov4" title="2">return nil</span>
+        <span class="cov7" title="5">return nil</span>
 }
 </pre>
 		
@@ -371,6 +382,7 @@ func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}
 
 import (
         "bytes"
+        "context"
         "encoding/json"
         "errors"
         "fmt"
@@ -393,17 +405,17 @@ type HTTPOptions struct {
         EnvToken  string `mapstructure:"env_token"` // Name of env token to get token from
 }
 
-func (opts *HTTPOptions) Validate() error <span class="cov10" title="8">{
+func (opts *HTTPOptions) Validate() error <span class="cov10" title="6">{
         if opts.URL == "" </span><span class="cov1" title="1">{
                 return errors.New("url is required")
         }</span>
-        <span class="cov9" title="7">if opts.Method == "" </span><span class="cov1" title="1">{
+        <span class="cov9" title="5">if opts.Method == "" </span><span class="cov1" title="1">{
                 opts.Method = http.MethodPost
         }</span>
-        <span class="cov9" title="7">if opts.ContentType == "" </span><span class="cov8" title="6">{
+        <span class="cov9" title="5">if opts.ContentType == "" </span><span class="cov7" title="4">{
                 opts.ContentType = "application/json; charset=utf-8"
         }</span>
-        <span class="cov9" title="7">return nil</span>
+        <span class="cov9" title="5">return nil</span>
 }
 
 type httpOutput struct {
@@ -419,38 +431,36 @@ func NewHTTPWriter(opts HTTPOptions) OutputWriter <span class="cov1" title="1">{
 
 // NewHTTPWriterWithClient allows injection of a custom HTTP client (for testing).
 func NewHTTPWriterWithClient(opts HTTPOptions, client *http.Client) OutputWriter <span class="cov7" title="4">{
-        if err := opts.Validate(); err != nil </span><span class="cov0" title="0">{
-                panic(fmt.Sprintf("invalid HTTPOptions: %v", err))</span>
-        }
-        <span class="cov7" title="4">return &amp;httpOutput{
+        return &amp;httpOutput{
                 opts:   opts,
                 client: client,
-        }</span>
-}
+        }
+}</span>
 
 // WriteOutput sends the JSON payload to the configured endpoint.
-func (h *httpOutput) WriteOutput(input map[string]interface{}) error <span class="cov7" title="4">{
+func (h *httpOutput) WriteOutput(ctx context.Context, input map[string]interface{}) error <span class="cov7" title="4">{
         data, err := json.Marshal(input)
         if err != nil </span><span class="cov1" title="1">{
                 return err
         }</span>
 
-        <span class="cov5" title="3">req, err := http.NewRequest(h.opts.Method, h.opts.URL, bytes.NewReader(data))
+        // Build request with context
+        <span class="cov6" title="3">req, err := http.NewRequestWithContext(ctx, h.opts.Method, h.opts.URL, bytes.NewReader(data))
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
         // Additional headers
-        <span class="cov5" title="3">for k, v := range h.opts.Headers </span><span class="cov0" title="0">{
+        <span class="cov6" title="3">for k, v := range h.opts.Headers </span><span class="cov1" title="1">{
                 req.Header.Set(k, v)
         }</span>
 
         // Security handling
-        <span class="cov5" title="3">token := h.opts.Token
+        <span class="cov6" title="3">token := h.opts.Token
         if h.opts.EnvToken != "" </span><span class="cov1" title="1">{
                 token = os.Getenv(h.opts.EnvToken)
         }</span>
-        <span class="cov5" title="3">if token != "" </span><span class="cov1" title="1">{
+        <span class="cov6" title="3">if token != "" </span><span class="cov1" title="1">{
                 tokenType := h.opts.TokenType
                 if tokenType == "" </span><span class="cov1" title="1">{
                         tokenType = "Bearer"
@@ -459,7 +469,7 @@ func (h *httpOutput) WriteOutput(input map[string]interface{}) error <span class
         }
 
         // Content type (which we could eventually inject if needed)
-        <span class="cov5" title="3">req.Header.Set("Content-Type", h.opts.ContentType)
+        <span class="cov6" title="3">req.Header.Set("Content-Type", h.opts.ContentType)
 
         // Do the request
         resp, err := h.client.Do(req)
@@ -468,7 +478,7 @@ func (h *httpOutput) WriteOutput(input map[string]interface{}) error <span class
         }</span>
 
         //goland:noinspection GoUnhandledErrorResult
-        <span class="cov5" title="3">defer resp.Body.Close()
+        <span class="cov6" title="3">defer resp.Body.Close()
 
         // Validate the status code
         if h.opts.ExpectStatusCode &gt; 0 &amp;&amp; resp.StatusCode != h.opts.ExpectStatusCode </span><span class="cov1" title="1">{
@@ -482,20 +492,21 @@ func (h *httpOutput) WriteOutput(input map[string]interface{}) error <span class
 		<pre class="file" id="file6" style="display: none">package outputs
 
 import (
+        "context"
         "fmt"
         "io"
 
         "github.com/tommed/ducto-orchestrator/internal/config"
 )
 
-func FromPlugin(block config.PluginBlock, stdout io.Writer) (OutputWriter, error) <span class="cov10" title="4">{
+func FromPlugin(ctx context.Context, block config.PluginBlock, stdout io.Writer) (OutputWriter, error) <span class="cov10" title="9">{
         switch block.Type </span>{
-        case "stdout":<span class="cov5" title="2">
+        case "stdout":<span class="cov7" title="5">
                 opts, err := config.Decode[StdoutOptions](block.Config)
                 if err != nil </span><span class="cov1" title="1">{
                         return nil, err
                 }</span>
-                <span class="cov1" title="1">return NewStdoutWriter(stdout, *opts), nil</span>
+                <span class="cov6" title="4">return NewStdoutWriter(stdout, *opts), nil</span>
 
         case "http":<span class="cov1" title="1">
                 opts, err := config.Decode[HTTPOptions](block.Config)
@@ -504,7 +515,14 @@ func FromPlugin(block config.PluginBlock, stdout io.Writer) (OutputWriter, error
                 }</span>
                 <span class="cov1" title="1">return NewHTTPWriter(*opts), nil</span>
 
-        default:<span class="cov1" title="1">
+        case "pubsub":<span class="cov1" title="1">
+                opts, err := config.Decode[PubSubOptions](block.Config)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov1" title="1">return NewPubSubWriter(ctx, *opts)</span>
+
+        default:<span class="cov3" title="2">
                 return nil, fmt.Errorf("unsupported output type: %q", block.Type)</span>
         }
 }
@@ -513,6 +531,117 @@ func FromPlugin(block config.PluginBlock, stdout io.Writer) (OutputWriter, error
 		<pre class="file" id="file7" style="display: none">package outputs
 
 import (
+        "cloud.google.com/go/pubsub"
+        "context"
+        "encoding/json"
+        "fmt"
+        "strings"
+        "time"
+)
+
+// PubSubOptions configure the Pub/Sub writer.
+type PubSubOptions struct {
+        Topic                string        `mapstructure:"topic"`
+        AttributesFromFields []string      `mapstructure:"attributes_from_fields"`
+        OrderingKeyField     string        `mapstructure:"ordering_key_field"`
+        EnableOrdering       bool          `mapstructure:"enable_message_ordering"`
+        Timeout              time.Duration `mapstructure:"timeout"` // defaults to 5s if unset
+}
+
+func (o *PubSubOptions) Validate() error <span class="cov8" title="1">{
+        if o.Topic == "" </span><span class="cov0" title="0">{
+                return fmt.Errorf("topic required")
+        }</span>
+        <span class="cov8" title="1">if o.Timeout == 0 </span><span class="cov8" title="1">{
+                o.Timeout = 30 * time.Second
+        }</span>
+        <span class="cov8" title="1">if o.Timeout &lt; 0 </span><span class="cov0" title="0">{
+                return fmt.Errorf("invalid timeout")
+        }</span>
+        <span class="cov8" title="1">if o.Timeout &gt; 5*time.Minute </span><span class="cov0" title="0">{
+                return fmt.Errorf("timeout too high")
+        }</span>
+        <span class="cov8" title="1">if o.EnableOrdering &amp;&amp; o.OrderingKeyField == "" </span><span class="cov0" title="0">{
+                return fmt.Errorf("ordering_key_field required when enable_message_ordering set")
+        }</span>
+        <span class="cov8" title="1">parts := strings.Split(o.Topic, "/")
+        if len(parts) &lt; 4 || parts[0] != "projects" || parts[2] != "topics" </span><span class="cov0" title="0">{
+                return fmt.Errorf("invalid topic format")
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+func NewPubSubWriter(ctx context.Context, opts PubSubOptions) (OutputWriter, error) <span class="cov8" title="1">{
+        parts := strings.Split(opts.Topic, "/")
+        projectID := parts[1]
+        topicID := parts[3]
+        client, err := pubsub.NewClient(ctx, projectID)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to create pubsub client: %w", err)
+        }</span>
+
+        <span class="cov8" title="1">topic := client.Topic(topicID)
+        topic.EnableMessageOrdering = opts.EnableOrdering
+
+        if opts.Timeout == 0 </span><span class="cov0" title="0">{
+                opts.Timeout = 5 * time.Second
+        }</span>
+
+        <span class="cov8" title="1">return &amp;pubSubWriter{
+                client: client,
+                topic:  topic,
+                opts:   opts,
+        }, nil</span>
+}
+
+// pubSubWriter is our concrete pub/sub writer class
+type pubSubWriter struct {
+        client *pubsub.Client
+        topic  *pubsub.Topic
+        opts   PubSubOptions
+}
+
+func (w pubSubWriter) WriteOutput(ctx context.Context, input map[string]interface{}) error <span class="cov8" title="1">{
+        ctxCncl, cancel := context.WithTimeout(ctx, w.opts.Timeout)
+        defer cancel()
+
+        data, err := json.Marshal(input)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">msg := &amp;pubsub.Message{
+                Data: data,
+        }
+
+        // Extract attributes
+        if w.opts.AttributesFromFields != nil </span><span class="cov0" title="0">{
+                msg.Attributes = map[string]string{}
+                for _, field := range w.opts.AttributesFromFields </span><span class="cov0" title="0">{
+                        if val, ok := input[field]; ok </span><span class="cov0" title="0">{
+                                msg.Attributes[field] = fmt.Sprintf("%v", val)
+                        }</span>
+                }
+        }
+
+        // Ordering Key
+        <span class="cov8" title="1">if w.opts.OrderingKeyField != "" </span><span class="cov0" title="0">{
+                if val, ok := input[w.opts.OrderingKeyField]; ok </span><span class="cov0" title="0">{
+                        msg.OrderingKey = fmt.Sprintf("%v", val)
+                }</span>
+        }
+
+        // Publish
+        <span class="cov8" title="1">res := w.topic.Publish(ctxCncl, msg)
+        _, err = res.Get(ctxCncl)
+        return err</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package outputs
+
+import (
+        "context"
         "encoding/json"
         "io"
 )
@@ -526,20 +655,20 @@ type stdoutWriter struct {
         opts   StdoutOptions
 }
 
-func NewStdoutWriter(stdout io.Writer, opts StdoutOptions) OutputWriter <span class="cov10" title="2">{
+func NewStdoutWriter(stdout io.Writer, opts StdoutOptions) OutputWriter <span class="cov10" title="5">{
         return &amp;stdoutWriter{writer: stdout, opts: opts}
 }</span>
 
-func (w *stdoutWriter) WriteOutput(data map[string]interface{}) error <span class="cov10" title="2">{
+func (w *stdoutWriter) WriteOutput(_ context.Context, data map[string]interface{}) error <span class="cov8" title="4">{
         encoder := json.NewEncoder(w.writer)
-        if w.opts.Pretty </span><span class="cov10" title="2">{
+        if w.opts.Pretty </span><span class="cov8" title="4">{
                 encoder.SetIndent("", "  ")
         }</span>
-        <span class="cov10" title="2">return encoder.Encode(data)</span>
+        <span class="cov8" title="4">return encoder.Encode(data)</span>
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package sources
+		<pre class="file" id="file9" style="display: none">package sources
 
 import (
         "context"
@@ -632,7 +761,7 @@ func (h *httpEventSource) Close() error <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package sources
+		<pre class="file" id="file10" style="display: none">package sources
 
 import "context"
 
@@ -646,23 +775,31 @@ type valuesEventSource struct {
         values []map[string]interface{}
 }
 
-func NewValuesEventSource(values ...map[string]interface{}) EventSource <span class="cov8" title="1">{
-        ch := make(chan map[string]interface{}, len(values))
+type ValuesOptions struct {
+        Values []map[string]interface{}
+}
+
+func NewValuesEventSource(opts ValuesOptions) EventSource <span class="cov10" title="7">{
+        ch := make(chan map[string]interface{}, len(opts.Values))
         return &amp;valuesEventSource{
                 stream: ch,
-                values: values,
+                values: opts.Values,
         }
 }</span>
 
-func (f *valuesEventSource) Start(_ context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov8" title="1">{
-        for _, v := range f.values </span><span class="cov8" title="1">{
+func NewValuesEventSourceRaw(values ...map[string]interface{}) EventSource <span class="cov9" title="6">{
+        return NewValuesEventSource(ValuesOptions{Values: values})
+}</span>
+
+func (f *valuesEventSource) Start(_ context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov10" title="7">{
+        for _, v := range f.values </span><span class="cov10" title="7">{
                 f.stream &lt;- v
         }</span>
-        <span class="cov8" title="1">close(f.stream)
+        <span class="cov10" title="7">close(f.stream)
         return f.stream, nil</span>
 }
 
-func (f *valuesEventSource) Close() error <span class="cov0" title="0">{
+func (f *valuesEventSource) Close() error <span class="cov9" title="6">{
         return nil // nothing to close
 }</span>
 
@@ -670,20 +807,20 @@ type errorEventSource struct {
         err error
 }
 
-func NewErrorEventSource(err error) EventSource <span class="cov0" title="0">{
+func NewErrorEventSource(err error) EventSource <span class="cov1" title="1">{
         return &amp;errorEventSource{err: err}
 }</span>
 
-func (e *errorEventSource) Start(ctx context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov0" title="0">{
+func (e *errorEventSource) Start(ctx context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov1" title="1">{
         return nil, e.err
 }</span>
 
-func (e *errorEventSource) Close() error <span class="cov0" title="0">{
+func (e *errorEventSource) Close() error <span class="cov1" title="1">{
         return nil
 }</span>
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package sources
+		<pre class="file" id="file11" style="display: none">package sources
 
 import (
         "context"
@@ -693,10 +830,17 @@ import (
         "github.com/tommed/ducto-orchestrator/internal/config"
 )
 
-func FromPlugin(ctx context.Context, block config.PluginBlock, stdin io.Reader) (EventSource, error) <span class="cov0" title="0">{
+func FromPlugin(ctx context.Context, block config.PluginBlock, stdin io.Reader) (EventSource, error) <span class="cov10" title="6">{
         switch block.Type </span>{
-        case "stdin":<span class="cov0" title="0">
+        case "stdin":<span class="cov7" title="4">
                 return NewStdinEventSource(stdin), nil</span>
+
+        case "values":<span class="cov1" title="1">
+                opts, err := config.Decode[ValuesOptions](block.Config)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov1" title="1">return NewValuesEventSource(*opts), nil</span>
 
         case "http":<span class="cov0" title="0">
                 opts, err := config.Decode[HTTPOptions](block.Config)
@@ -705,13 +849,13 @@ func FromPlugin(ctx context.Context, block config.PluginBlock, stdin io.Reader) 
                 }</span>
                 <span class="cov0" title="0">return NewHTTPEventSource(*opts), nil</span>
 
-        default:<span class="cov0" title="0">
+        default:<span class="cov1" title="1">
                 return nil, fmt.Errorf("unsupported source type: %q", block.Type)</span>
         }
 }
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package sources
+		<pre class="file" id="file12" style="display: none">package sources
 
 import (
         "context"
@@ -724,30 +868,30 @@ type stdinEventSource struct {
         reader io.Reader
 }
 
-func NewStdinEventSource(stdin io.Reader) EventSource <span class="cov10" title="3">{
+func NewStdinEventSource(stdin io.Reader) EventSource <span class="cov8" title="7">{
         return &amp;stdinEventSource{
                 reader: stdin,
         }
 }</span>
 
 // Start reads exactly one JSON object from stdin and then closes the stream.
-func (s *stdinEventSource) Start(ctx context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov6" title="2">{
+func (s *stdinEventSource) Start(ctx context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov7" title="5">{
         // Read input
         var input map[string]interface{}
         decoder := json.NewDecoder(s.reader)
-        if err := decoder.Decode(&amp;input); err != nil </span><span class="cov1" title="1">{
+        if err := decoder.Decode(&amp;input); err != nil </span><span class="cov3" title="2">{
                 return nil, fmt.Errorf("failed to decode stdin input: %w", err)
         }</span>
 
         // Delegate to valuesEventSource without exporting it
-        <span class="cov1" title="1">return NewValuesEventSource(input).Start(ctx)</span>
+        <span class="cov5" title="3">return NewValuesEventSourceRaw(input).Start(ctx)</span>
 }
 
-func (s *stdinEventSource) Close() error <span class="cov10" title="3">{
-        if c, ok := s.reader.(io.Closer); ok </span><span class="cov1" title="1">{
+func (s *stdinEventSource) Close() error <span class="cov10" title="9">{
+        if c, ok := s.reader.(io.Closer); ok </span><span class="cov8" title="7">{
                 return c.Close()
         }</span>
-        <span class="cov6" title="2">return nil</span>
+        <span class="cov3" title="2">return nil</span>
 }
 </pre>
 		

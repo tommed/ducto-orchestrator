@@ -71,8 +71,8 @@ type pubSubWriter struct {
 	opts   PubSubOptions
 }
 
-func (w pubSubWriter) WriteOutput(ctx context.Context, input map[string]interface{}) error {
-	ctxCncl, cancel := context.WithTimeout(ctx, w.opts.Timeout)
+func (w pubSubWriter) WriteOutput(parentCtx context.Context, input map[string]interface{}) error {
+	ctxWithTimeout, cancel := context.WithTimeout(parentCtx, w.opts.Timeout)
 	defer cancel()
 
 	data, err := json.Marshal(input)
@@ -102,7 +102,7 @@ func (w pubSubWriter) WriteOutput(ctx context.Context, input map[string]interfac
 	}
 
 	// Publish
-	res := w.topic.Publish(ctxCncl, msg)
-	_, err = res.Get(ctxCncl)
+	res := w.topic.Publish(ctxWithTimeout, msg)
+	_, err = res.Get(ctxWithTimeout)
 	return err
 }
