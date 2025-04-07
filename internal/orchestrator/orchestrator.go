@@ -63,7 +63,7 @@ func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}
 	}
 
 	// Write Output
-	if err := writer.WriteOutput(output); err != nil {
+	if err := writer.WriteOutput(ctx, output); err != nil {
 		return fmt.Errorf("failed to write output: %w", err)
 	}
 

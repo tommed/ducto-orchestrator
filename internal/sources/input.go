@@ -12,12 +12,20 @@ type valuesEventSource struct {
 	values []map[string]interface{}
 }
 
-func NewValuesEventSource(values ...map[string]interface{}) EventSource {
-	ch := make(chan map[string]interface{}, len(values))
+type ValuesOptions struct {
+	Values []map[string]interface{}
+}
+
+func NewValuesEventSource(opts ValuesOptions) EventSource {
+	ch := make(chan map[string]interface{}, len(opts.Values))
 	return &valuesEventSource{
 		stream: ch,
-		values: values,
+		values: opts.Values,
 	}
+}
+
+func NewValuesEventSourceRaw(values ...map[string]interface{}) EventSource {
+	return NewValuesEventSource(ValuesOptions{Values: values})
 }
 
 func (f *valuesEventSource) Start(_ context.Context) (<-chan map[string]interface{}, error) {

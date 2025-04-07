@@ -37,7 +37,7 @@ type fakeWriter struct {
 	Written map[string]interface{}
 }
 
-func (f *fakeWriter) WriteOutput(data map[string]interface{}) error {
+func (f *fakeWriter) WriteOutput(_ context.Context, data map[string]interface{}) error {
 	f.Written = data
 	return nil
 }
@@ -46,6 +46,6 @@ type failingWriter struct {
 	err error
 }
 
-func (f *failingWriter) WriteOutput(data map[string]interface{}) error {
+func (f *failingWriter) WriteOutput(_ context.Context, _ map[string]interface{}) error {
 	return f.err
 }

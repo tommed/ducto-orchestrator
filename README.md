@@ -42,6 +42,8 @@ It is the recommended runtime for automating, transforming, and routing event-dr
 - Clean architecture for minimal vendor lock-in
 - OpenTelemetry-ready
 
+You can also check the [specifications here](docs/specs.md).
+
 ---
 
 ## 🟣 Typical Pipeline

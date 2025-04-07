@@ -50,6 +50,10 @@ func Load(path string) (*Config, error) {
 	return &cfg, nil
 }
 
+type Options interface {
+	Validate() error
+}
+
 func Decode[T any](raw map[string]interface{}) (*T, error) {
 	var target T
 	dec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
@@ -61,6 +65,11 @@ func Decode[T any](raw map[string]interface{}) (*T, error) {
 	}
 	if err := dec.Decode(raw); err != nil {
 		return nil, err
+	}
+	if val, ok := any(&target).(Options); ok {
+		if err := val.Validate(); err != nil {
+			return nil, err
+		}
 	}
 	return &target, nil
 }

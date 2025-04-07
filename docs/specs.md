@@ -20,3 +20,8 @@ Ducto Orchestrator is versioned for obvious reasons. Here are the versions curre
 ##  🔘 Other Versions
 
 - No previous versions are available
+
+---
+# Features
+
+- [Pub/Sub Output Writer](./spec-feat-output-pubsub.md)

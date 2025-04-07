@@ -1,6 +1,7 @@
 package outputs
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -68,6 +69,7 @@ func TestHTTPOptions_Validate(t *testing.T) {
 }
 
 func TestHTTPWriter_SuccessfulRequest(t *testing.T) {
+	ctx := context.Background()
 	mockClient := newMockClient(func(req *http.Request) *http.Response {
 		assert.Equal(t, "application/json; charset=utf-8", req.Header.Get("Content-Type"))
 		assert.Equal(t, "Bearer test-token", req.Header.Get("Authorization"))
@@ -80,20 +82,23 @@ func TestHTTPWriter_SuccessfulRequest(t *testing.T) {
 		}
 	})
 
-	writer := NewHTTPWriterWithClient(HTTPOptions{
+	var opts = HTTPOptions{
 		URL:    "https://example.com/api",
 		Method: "POST",
 		Token:  "test-token",
 		Headers: map[string]string{
 			"Accept": "application/json",
 		},
-	}, mockClient)
+	}
+	_ = opts.Validate() // applies defaults, usually called by `FromPlugin`
+	writer := NewHTTPWriterWithClient(opts, mockClient)
 
-	err := writer.WriteOutput(map[string]interface{}{"foo": "bar"})
+	err := writer.WriteOutput(ctx, map[string]interface{}{"foo": "bar"})
 	assert.NoError(t, err)
 }
 
 func TestHTTPWriter_InvalidStatusCode(t *testing.T) {
+	ctx := context.Background()
 	mockClient := newMockClient(func(req *http.Request) *http.Response {
 		return &http.Response{
 			StatusCode: 418,
@@ -107,12 +112,13 @@ func TestHTTPWriter_InvalidStatusCode(t *testing.T) {
 		ExpectStatusCode: 200,
 	}, mockClient)
 
-	err := writer.WriteOutput(map[string]interface{}{"fail": true})
+	err := writer.WriteOutput(ctx, map[string]interface{}{"fail": true})
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "expected status code 200 but got 418")
 }
 
 func TestHTTPWriter_InvalidJSON(t *testing.T) {
+	ctx := context.Background()
 	writer := NewHTTPWriterWithClient(HTTPOptions{
 		URL:    "https://example.com",
 		Method: "POST",
@@ -123,7 +129,7 @@ func TestHTTPWriter_InvalidJSON(t *testing.T) {
 		"bad": func() {},
 	}
 
-	err := writer.WriteOutput(invalid)
+	err := writer.WriteOutput(ctx, invalid)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "json: unsupported type")
 }
