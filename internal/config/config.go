@@ -18,8 +18,9 @@ type Config struct {
 	Program     *transform.Program `mapstructure:"program"`
 	ProgramFile string             `mapstructure:"program_file"`
 
-	Source PluginBlock `mapstructure:"source"`
-	Output PluginBlock `mapstructure:"output"`
+	Preprocessors []PluginBlock `mapstructure:"preprocessors"`
+	Source        PluginBlock   `mapstructure:"source"`
+	Output        PluginBlock   `mapstructure:"output"`
 }
 
 func Load(path string) (*Config, error) {
@@ -46,8 +47,25 @@ func Load(path string) (*Config, error) {
 	if cfg.ProgramFile != "" && !filepath.IsAbs(cfg.ProgramFile) {
 		cfg.ProgramFile = filepath.Join(cfgDir, cfg.ProgramFile)
 	}
+	SetConfigFilePath(cfgDir)
 
 	return &cfg, nil
+}
+
+var configDir string
+
+func SetConfigFilePath(absPath string) {
+	configDir = filepath.Dir(absPath)
+}
+
+func ResolvePath(relOrAbs string) (string, error) {
+	if filepath.IsAbs(relOrAbs) {
+		return relOrAbs, nil
+	}
+	if configDir == "" {
+		return "", fmt.Errorf("no config directory set")
+	}
+	return filepath.Join(configDir, relOrAbs), nil
 }
 
 type Options interface {

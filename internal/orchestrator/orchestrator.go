@@ -9,8 +9,9 @@ import (
 )
 
 type Orchestrator struct {
-	Program *transform.Program
-	Debug   bool
+	Program       *transform.Program
+	Debug         bool
+	preprocessors []Preprocessor
 }
 
 func New(program *transform.Program, debug bool) *Orchestrator {
@@ -18,6 +19,10 @@ func New(program *transform.Program, debug bool) *Orchestrator {
 		Program: program,
 		Debug:   debug,
 	}
+}
+
+func (o *Orchestrator) AddPreprocessor(p Preprocessor) {
+	o.preprocessors = append(o.preprocessors, p)
 }
 
 func (o *Orchestrator) RunLoop(ctx context.Context, source sources.EventSource, writer outputs.OutputWriter) error {
@@ -56,13 +61,20 @@ func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}
 	ctx = context.WithValue(ctx,
 		transform.ContextKeyDebug, o.Debug)
 
-	// Apply transformation
+	// 🔁 Apply preprocessors here
+	for _, p := range o.preprocessors {
+		if err := p.Process(ctx, input); err != nil {
+			return fmt.Errorf("preprocessor failed: %w", err)
+		}
+	}
+
+	// ➕ Transform
 	output, err := transform.New().Apply(ctx, input, o.Program)
 	if err != nil {
 		return fmt.Errorf("failed to apply program: %w", err)
 	}
 
-	// Write Output
+	// ➡️ Output
 	if err := writer.WriteOutput(ctx, output); err != nil {
 		return fmt.Errorf("failed to write output: %w", err)
 	}

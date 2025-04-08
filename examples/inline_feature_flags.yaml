@@ -1,0 +1,18 @@
+debug: true
+
+preprocessors:
+  - type: feature_flags
+    config:
+      keys: [new_ui, beta]
+      flags:
+        new_ui:
+          enabled: true
+        beta:
+          enabled: false
+
+program:
+  version: 1
+  instructions:
+    - op: set
+      key: seen
+      value: true

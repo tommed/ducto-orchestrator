@@ -78,6 +78,11 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 
 	// Run orchestrator
 	o := orchestrator.New(prog, cfg.Debug)
+
+	// Install our preprocessors
+	o.InstallPreprocessors(cfg.Preprocessors)
+
+	// Run the Loop
 	if err := o.RunLoop(ctx, source, output); err != nil {
 		fmt.Fprintf(stderr, "orchestrator failed: %v\n", err)
 		return 1

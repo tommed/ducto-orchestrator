@@ -1,0 +1,16 @@
+debug: true
+
+preprocessors:
+  - type: feature_flags
+    config:
+      file: flags.yaml # relative to this file
+      keys:
+        - drop_events
+        - new_ui
+
+program:
+  version: 1
+  instructions:
+    - op: set
+      key: was_here
+      value: true
