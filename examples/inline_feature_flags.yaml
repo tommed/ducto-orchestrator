@@ -1,4 +1,4 @@
-debug: true
+debug: false
 
 preprocessors:
   - type: feature_flags
@@ -16,3 +16,14 @@ program:
     - op: set
       key: seen
       value: true
+    - op: copy
+      from: '_flags.new_ui'
+      to: 'use_new_ui'
+
+source:
+  type: stdin
+
+output:
+  type: stdout
+  config:
+    pretty: true
