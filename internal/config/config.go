@@ -47,7 +47,7 @@ func Load(path string) (*Config, error) {
 	if cfg.ProgramFile != "" && !filepath.IsAbs(cfg.ProgramFile) {
 		cfg.ProgramFile = filepath.Join(cfgDir, cfg.ProgramFile)
 	}
-	SetConfigFilePath(cfgDir)
+	SetConfigFilePath(absPath)
 
 	return &cfg, nil
 }

@@ -1,12 +1,10 @@
-debug: true
+debug: false
 
 preprocessors:
   - type: feature_flags
     config:
       file: flags.yaml # relative to this file
-      keys:
-        - drop_events
-        - new_ui
+      keys: [new_ui]
 
 program:
   version: 1
@@ -14,3 +12,13 @@ program:
     - op: set
       key: was_here
       value: true
+    - op: merge
+
+
+source:
+  type: stdin
+
+output:
+  type: stdout
+  config:
+    pretty: true
