@@ -1,6 +1,6 @@
 module github.com/tommed/ducto-orchestrator
 
-go 1.24.1
+go 1.24.2
 
 require (
 	cloud.google.com/go/pubsub v1.48.1
@@ -8,6 +8,7 @@ require (
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	github.com/tommed/ducto-dsl v0.0.0-20250402194146-d70e8ca41fc5
+	github.com/tommed/ducto-featureflags v0.0.0-20250409081815-a085e7256e52
 )
 
 require (
@@ -18,7 +19,7 @@ require (
 	cloud.google.com/go/iam v1.4.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/fsnotify/fsnotify v1.8.0 // indirect
+	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
