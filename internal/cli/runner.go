@@ -80,7 +80,10 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	o := orchestrator.New(prog, cfg.Debug)
 
 	// Install our preprocessors
-	o.InstallPreprocessors(cfg.Preprocessors)
+	if err := o.InstallPreprocessors(cfg.Preprocessors); err != nil {
+		fmt.Fprintf(stderr, "failed to install preprocessors: %v\n", err)
+		return 1
+	}
 
 	// Run the Loop
 	if err := o.RunLoop(ctx, source, output); err != nil {
