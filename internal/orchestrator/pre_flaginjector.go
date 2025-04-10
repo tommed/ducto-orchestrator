@@ -1,51 +1,41 @@
 package orchestrator
 
 import (
+	"context"
 	"fmt"
-	"github.com/tommed/ducto-orchestrator/internal/config"
-
 	flagsdk "github.com/tommed/ducto-featureflags/sdk"
+	"github.com/tommed/ducto-orchestrator/internal/config"
 )
 
-func (o *Orchestrator) InstallPreprocessors(preprocessors []config.PluginBlock) error {
-	for _, block := range preprocessors {
-		switch block.Type {
-		case "feature_flags":
-			p, err := NewFlagInjectorFromConfig(block.Config)
-			if err != nil {
-				return fmt.Errorf("load feature flag preprocessor: %w", err)
-			}
-			o.AddPreprocessor(p)
-		default:
-			return fmt.Errorf("unknown preprocessor type: %q", block.Type)
-		}
-	}
-	return nil
-}
-
-func NewFlagInjectorFromConfig(raw map[string]interface{}) (*FlagInjector, error) {
+func NewFlagInjectorFromConfig(ctx context.Context, raw map[string]interface{}) (*FlagInjector, error) {
 	opts, err := config.Decode[FlagInjectorOptions](raw)
 	if err != nil {
 		return nil, err
 	}
 
-	var store *flagsdk.Store
-
+	var store flagsdk.AnyStore
 	switch {
-	case opts.File != "":
-		path, err := config.ResolvePath(opts.File)
+
+	// 'Provider' is an inline definition of flags
+	case opts.Provider != nil:
+		reloadingStore, err := NewStoreFromConfig(ctx, opts.Provider)
 		if err != nil {
-			return nil, fmt.Errorf("resolve path: %w", err)
+			return nil, err
 		}
-		store, err = flagsdk.NewStoreFromFile(path)
+		err = reloadingStore.Start()
 		if err != nil {
-			return nil, fmt.Errorf("load flag file: %w", err)
+			return nil, fmt.Errorf("load flag preprocessor: %w", err)
 		}
+		store = reloadingStore
+
+	// Hard-coded flags (inline)
 	case opts.Flags != nil:
 		store = flagsdk.NewStore(opts.Flags)
+
+	// Not supported
 	default:
 		return nil, fmt.Errorf("featureflags preprocessor requires either 'file' or inline 'flags'")
 	}
 
-	return NewFlagInjector(store, opts.Keys), nil
+	return NewFlagInjector(store, opts.Tags), nil
 }

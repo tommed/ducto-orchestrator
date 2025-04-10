@@ -3,10 +3,15 @@ debug: false
 preprocessors:
   - type: feature_flags
     config:
-      keys: [new_ui, beta]
+      tags:
+        env: prod
+        group: beta
       flags:
         new_ui:
           enabled: true
+          rules:
+            - { if: { env: prod, group: beta }, value: true }
+            - { if: { env: prod }, value: false }
         beta:
           enabled: false
 

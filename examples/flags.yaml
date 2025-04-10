@@ -1,7 +1,9 @@
-flags:
-  new_ui:
-    rules:
-      - if:
-          env: prod
-        value: true
-    enabled: false
+beta:
+  enabled: true
+
+new_ui:
+  rules:
+    - if:
+        env: prod
+      value: true
+  enabled: false

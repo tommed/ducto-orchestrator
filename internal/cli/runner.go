@@ -80,7 +80,7 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	o := orchestrator.New(prog, cfg.Debug)
 
 	// Install our preprocessors
-	if err := o.InstallPreprocessors(cfg.Preprocessors); err != nil {
+	if err := o.InstallPreprocessors(ctx, cfg.Preprocessors); err != nil {
 		fmt.Fprintf(stderr, "failed to install preprocessors: %v\n", err)
 		return 1
 	}
