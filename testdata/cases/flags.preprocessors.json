@@ -1,0 +1,21 @@
+{
+  "preprocessors": [
+    {
+      "type": "feature_flags",
+      "config": {
+        "tags": {
+          "env": "prod"
+        },
+        "flags": {
+          "stable_ui": {
+            "rules": [
+              {"if": {"env": "prod"}, "value": true},
+              {"if": {"region": "canada"}, "value": true}
+            ],
+            "enabled": false
+          }
+        }
+      }
+    }
+  ]
+}
