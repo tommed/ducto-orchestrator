@@ -3,12 +3,16 @@ debug: false
 preprocessors:
   - type: feature_flags
     config:
-      provider:
-        type: file
-        file: flags.yaml
       tags:
-        env: dev
-        new_ui: 'true'
+        env: prod
+        group: beta
+        region: UK
+        customer: mps
+      provider:
+        type: http
+        url: http://localhost:8080/api/flags
+        token: some-token
+        poll_interval_seconds: 30
 
 program:
   version: 1

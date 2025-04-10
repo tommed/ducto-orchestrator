@@ -27,13 +27,13 @@ func (o *Orchestrator) AddPreprocessor(p Preprocessor) {
 
 func (o *Orchestrator) RunLoop(ctx context.Context, source sources.EventSource, writer outputs.OutputWriter) error {
 
-	// Setup Source
+	// Setup Provider
 	events, err := source.Start(ctx)
 	if err != nil {
 		return err
 	}
 
-	// Teardown Source
+	// Teardown Provider
 	defer func(source sources.EventSource) {
 		_ = source.Close()
 	}(source)
@@ -72,6 +72,10 @@ func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}
 	output, err := transform.New().Apply(ctx, input, o.Program)
 	if err != nil {
 		return fmt.Errorf("failed to apply program: %w", err)
+	}
+	if output == nil {
+		// The program author determined this input should be disregarded/dropped
+		return nil
 	}
 
 	// ➡️ Output

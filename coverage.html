@@ -57,29 +57,37 @@
 				
 				<option value="file0">github.com/tommed/ducto-orchestrator/cmd/ducto-orchestrator/main.go (0.0%)</option>
 				
-				<option value="file1">github.com/tommed/ducto-orchestrator/internal/cli/runner.go (100.0%)</option>
+				<option value="file1">github.com/tommed/ducto-orchestrator/internal/cli/runner.go (95.7%)</option>
 				
 				<option value="file2">github.com/tommed/ducto-orchestrator/internal/cli/signal.go (100.0%)</option>
 				
-				<option value="file3">github.com/tommed/ducto-orchestrator/internal/config/config.go (83.3%)</option>
+				<option value="file3">github.com/tommed/ducto-orchestrator/internal/config/config.go (71.0%)</option>
 				
-				<option value="file4">github.com/tommed/ducto-orchestrator/internal/orchestrator/orchestrator.go (100.0%)</option>
+				<option value="file4">github.com/tommed/ducto-orchestrator/internal/orchestrator/featureflags/factory.go (0.0%)</option>
 				
-				<option value="file5">github.com/tommed/ducto-orchestrator/internal/outputs/http.go (93.9%)</option>
+				<option value="file5">github.com/tommed/ducto-orchestrator/internal/orchestrator/featureflags/http_source.go (0.0%)</option>
 				
-				<option value="file6">github.com/tommed/ducto-orchestrator/internal/outputs/plugin.go (85.7%)</option>
+				<option value="file6">github.com/tommed/ducto-orchestrator/internal/orchestrator/flag_injector.go (0.0%)</option>
 				
-				<option value="file7">github.com/tommed/ducto-orchestrator/internal/outputs/pubsub.go (66.7%)</option>
+				<option value="file7">github.com/tommed/ducto-orchestrator/internal/orchestrator/orchestrator.go (84.6%)</option>
 				
-				<option value="file8">github.com/tommed/ducto-orchestrator/internal/outputs/stdout.go (100.0%)</option>
+				<option value="file8">github.com/tommed/ducto-orchestrator/internal/orchestrator/pre_flaginjector.go (6.2%)</option>
 				
-				<option value="file9">github.com/tommed/ducto-orchestrator/internal/sources/http.go (73.1%)</option>
+				<option value="file9">github.com/tommed/ducto-orchestrator/internal/outputs/http.go (93.9%)</option>
 				
-				<option value="file10">github.com/tommed/ducto-orchestrator/internal/sources/input.go (100.0%)</option>
+				<option value="file10">github.com/tommed/ducto-orchestrator/internal/outputs/plugin.go (85.7%)</option>
 				
-				<option value="file11">github.com/tommed/ducto-orchestrator/internal/sources/plugin.go (54.5%)</option>
+				<option value="file11">github.com/tommed/ducto-orchestrator/internal/outputs/pubsub.go (66.7%)</option>
 				
-				<option value="file12">github.com/tommed/ducto-orchestrator/internal/sources/stdin.go (100.0%)</option>
+				<option value="file12">github.com/tommed/ducto-orchestrator/internal/outputs/stdout.go (100.0%)</option>
+				
+				<option value="file13">github.com/tommed/ducto-orchestrator/internal/sources/http.go (73.1%)</option>
+				
+				<option value="file14">github.com/tommed/ducto-orchestrator/internal/sources/input.go (100.0%)</option>
+				
+				<option value="file15">github.com/tommed/ducto-orchestrator/internal/sources/plugin.go (54.5%)</option>
+				
+				<option value="file16">github.com/tommed/ducto-orchestrator/internal/sources/stdin.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -194,7 +202,15 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int <span cla
 
         // Run orchestrator
         <span class="cov5" title="3">o := orchestrator.New(prog, cfg.Debug)
-        if err := o.RunLoop(ctx, source, output); err != nil </span><span class="cov1" title="1">{
+
+        // Install our preprocessors
+        if err := o.InstallPreprocessors(ctx, cfg.Preprocessors); err != nil </span><span class="cov0" title="0">{
+                fmt.Fprintf(stderr, "failed to install preprocessors: %v\n", err)
+                return 1
+        }</span>
+
+        // Run the Loop
+        <span class="cov5" title="3">if err := o.RunLoop(ctx, source, output); err != nil </span><span class="cov1" title="1">{
                 fmt.Fprintf(stderr, "orchestrator failed: %v\n", err)
                 return 1
         }</span>
@@ -248,8 +264,9 @@ type Config struct {
         Program     *transform.Program `mapstructure:"program"`
         ProgramFile string             `mapstructure:"program_file"`
 
-        Source PluginBlock `mapstructure:"source"`
-        Output PluginBlock `mapstructure:"output"`
+        Preprocessors []PluginBlock `mapstructure:"preprocessors"`
+        Source        PluginBlock   `mapstructure:"source"`
+        Output        PluginBlock   `mapstructure:"output"`
 }
 
 func Load(path string) (*Config, error) <span class="cov10" title="11">{
@@ -276,8 +293,25 @@ func Load(path string) (*Config, error) <span class="cov10" title="11">{
         if cfg.ProgramFile != "" &amp;&amp; !filepath.IsAbs(cfg.ProgramFile) </span><span class="cov7" title="5">{
                 cfg.ProgramFile = filepath.Join(cfgDir, cfg.ProgramFile)
         }</span>
+        <span class="cov8" title="8">SetConfigFilePath(absPath)
 
-        <span class="cov8" title="8">return &amp;cfg, nil</span>
+        return &amp;cfg, nil</span>
+}
+
+var configDir string
+
+func SetConfigFilePath(absPath string) <span class="cov8" title="8">{
+        configDir = filepath.Dir(absPath)
+}</span>
+
+func ResolvePath(relOrAbs string) (string, error) <span class="cov0" title="0">{
+        if filepath.IsAbs(relOrAbs) </span><span class="cov0" title="0">{
+                return relOrAbs, nil
+        }</span>
+        <span class="cov0" title="0">if configDir == "" </span><span class="cov0" title="0">{
+                return "", fmt.Errorf("no config directory set")
+        }</span>
+        <span class="cov0" title="0">return filepath.Join(configDir, relOrAbs), nil</span>
 }
 
 type Options interface {
@@ -305,7 +339,189 @@ func Decode[T any](raw map[string]interface{}) (*T, error) <span class="cov9" ti
 }
 </pre>
 		
-		<pre class="file" id="file4" style="display: none">package orchestrator
+		<pre class="file" id="file4" style="display: none">package featureflags
+
+import (
+        "fmt"
+        "github.com/tommed/ducto-orchestrator/internal/config"
+)
+
+func NewSourceFromConfig(raw map[string]interface{}) (Source, error) <span class="cov0" title="0">{
+        sourceType, ok := raw["type"].(string)
+        if !ok </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("missing orchestrator.feature_flags.source.type")
+        }</span>
+
+        <span class="cov0" title="0">switch sourceType </span>{
+        case "http":<span class="cov0" title="0">
+                opts, err := config.Decode[HTTPSourceOptions](raw)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("invalid http source config: %w", err)
+                }</span>
+                <span class="cov0" title="0">if err := opts.Validate(); err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("invalid http source config: %w", err)
+                }</span>
+                <span class="cov0" title="0">return NewHTTPSource(*opts), nil</span>
+        }
+
+        <span class="cov0" title="0">return nil, fmt.Errorf("unsupported orchestrator.feature_flags.source.type: %s", sourceType)</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package featureflags
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "io"
+        "net/http"
+        "sync"
+        "time"
+
+        "github.com/tommed/ducto-featureflags/sdk"
+)
+
+type HTTPSourceOptions struct {
+        URL          string        `mapstructure:"url"`
+        Token        string        `mapstructure:"token"`
+        PollInterval time.Duration `mapstructure:"poll_interval"`
+}
+
+func (o *HTTPSourceOptions) Validate() error <span class="cov0" title="0">{
+        if o.URL == "" </span><span class="cov0" title="0">{
+                return errors.New("missing url")
+        }</span>
+        <span class="cov0" title="0">if o.PollInterval &lt; time.Second </span><span class="cov0" title="0">{
+                return errors.New("poll_interval too small")
+        }</span>
+        <span class="cov0" title="0">return nil</span>
+}
+
+func NewHTTPSource(opts HTTPSourceOptions) Source <span class="cov0" title="0">{
+        return &amp;HTTPSource{
+                opts: opts,
+        }
+}</span>
+
+type HTTPSource struct {
+        opts      HTTPSourceOptions
+        lastMod   string
+        mu        sync.Mutex
+        lastStore *sdk.Store
+}
+
+func (s *HTTPSource) Load(ctx context.Context) (*sdk.Store, error) <span class="cov0" title="0">{
+        req, _ := http.NewRequestWithContext(ctx, "GET", s.opts.URL, nil)
+
+        if s.opts.Token != "" </span><span class="cov0" title="0">{
+                req.Header.Set("Authorization", "Bearer "+s.opts.Token)
+        }</span>
+        <span class="cov0" title="0">if s.lastMod != "" </span><span class="cov0" title="0">{
+                req.Header.Set("If-Modified-Since", s.lastMod)
+        }</span>
+
+        <span class="cov0" title="0">resp, err := http.DefaultClient.Do(req)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        //goland:noinspection GoUnhandledErrorResult
+        <span class="cov0" title="0">defer resp.Body.Close()
+
+        if resp.StatusCode == http.StatusNotModified </span><span class="cov0" title="0">{
+                // No change, don't trigger reload
+                return nil, nil
+        }</span>
+        <span class="cov0" title="0">if resp.StatusCode &gt;= 400 </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("http error: %s", resp.Status)
+        }</span>
+
+        <span class="cov0" title="0">body, _ := io.ReadAll(resp.Body)
+        store, err := sdk.NewStoreFromBytesWithFormat(body, sdk.DetectFormat(s.opts.URL))
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">s.mu.Lock()
+        s.lastStore = store
+        s.lastMod = resp.Header.Get("Last-Modified")
+        s.mu.Unlock()
+
+        return store, nil</span>
+}
+
+func (s *HTTPSource) Watch(ctx context.Context, onChange func(*sdk.Store)) <span class="cov0" title="0">{
+        ticker := time.NewTicker(s.opts.PollInterval)
+        defer ticker.Stop()
+
+        for </span><span class="cov0" title="0">{
+                select </span>{
+                case &lt;-ctx.Done():<span class="cov0" title="0">
+                        return</span>
+                case &lt;-ticker.C:<span class="cov0" title="0">
+                        store, err := s.Load(ctx)
+                        if err != nil || store == nil </span><span class="cov0" title="0">{
+                                continue</span>
+                        }
+                        <span class="cov0" title="0">onChange(store)</span>
+                }
+        }
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package orchestrator
+
+import (
+        "context"
+        flagsdk "github.com/tommed/ducto-featureflags/sdk"
+        "sync"
+)
+
+type FlagInjectorOptions struct {
+        File   string                  `mapstructure:"file,omitempty"`
+        Flags  map[string]flagsdk.Flag `mapstructure:"flags,omitempty"`
+        Keys   []string                `mapstructure:"keys"`
+        Source map[string]interface{}  `mapstructure:"source,omitempty"`
+}
+
+type FlagInjector struct {
+        store *flagsdk.Store
+        keys  []string
+
+        mu sync.Mutex
+}
+
+func NewFlagInjector(store *flagsdk.Store, keys []string) *FlagInjector <span class="cov0" title="0">{
+        return &amp;FlagInjector{store: store, keys: keys}
+}</span>
+
+func (f *FlagInjector) UpdateStore(newStore *flagsdk.Store) <span class="cov0" title="0">{
+        f.mu.Lock()
+        f.store = newStore
+        f.mu.Unlock()
+}</span>
+
+func (f *FlagInjector) Process(_ context.Context, input map[string]interface{}) error <span class="cov0" title="0">{
+        ctx := flagsdk.EvalContext{}
+
+        for k, v := range input </span><span class="cov0" title="0">{
+                if str, ok := v.(string); ok </span><span class="cov0" title="0">{
+                        ctx[k] = str
+                }</span>
+        }
+
+        <span class="cov0" title="0">res := map[string]bool{}
+        for _, key := range f.keys </span><span class="cov0" title="0">{
+                res[key] = f.store.IsEnabled(key, ctx)
+        }</span>
+
+        <span class="cov0" title="0">input["_flags"] = res
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package orchestrator
 
 import (
         "context"
@@ -316,8 +532,9 @@ import (
 )
 
 type Orchestrator struct {
-        Program *transform.Program
-        Debug   bool
+        Program       *transform.Program
+        Debug         bool
+        preprocessors []Preprocessor
 }
 
 func New(program *transform.Program, debug bool) *Orchestrator <span class="cov7" title="6">{
@@ -325,6 +542,10 @@ func New(program *transform.Program, debug bool) *Orchestrator <span class="cov7
                 Program: program,
                 Debug:   debug,
         }
+}</span>
+
+func (o *Orchestrator) AddPreprocessor(p Preprocessor) <span class="cov0" title="0">{
+        o.preprocessors = append(o.preprocessors, p)
 }</span>
 
 func (o *Orchestrator) RunLoop(ctx context.Context, source sources.EventSource, writer outputs.OutputWriter) error <span class="cov9" title="9">{
@@ -363,13 +584,24 @@ func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}
         ctx = context.WithValue(ctx,
                 transform.ContextKeyDebug, o.Debug)
 
-        // Apply transformation
-        output, err := transform.New().Apply(ctx, input, o.Program)
+        // 🔁 Apply preprocessors here
+        for _, p := range o.preprocessors </span><span class="cov0" title="0">{
+                if err := p.Process(ctx, input); err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("preprocessor failed: %w", err)
+                }</span>
+        }
+
+        // ➕ Transform
+        <span class="cov8" title="7">output, err := transform.New().Apply(ctx, input, o.Program)
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to apply program: %w", err)
         }</span>
+        <span class="cov7" title="6">if output == nil </span><span class="cov0" title="0">{
+                // The program author determined this input should be disregarded/dropped
+                return nil
+        }</span>
 
-        // Write Output
+        // ➡️ Output
         <span class="cov7" title="6">if err := writer.WriteOutput(ctx, output); err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to write output: %w", err)
         }</span>
@@ -378,7 +610,77 @@ func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}
 }
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package outputs
+		<pre class="file" id="file8" style="display: none">package orchestrator
+
+import (
+        "context"
+        "fmt"
+        "github.com/tommed/ducto-orchestrator/internal/config"
+        "github.com/tommed/ducto-orchestrator/internal/orchestrator/featureflags"
+
+        flagsdk "github.com/tommed/ducto-featureflags/sdk"
+)
+
+func (o *Orchestrator) InstallPreprocessors(ctx context.Context, preprocessors []config.PluginBlock) error <span class="cov10" title="3">{
+        for _, block := range preprocessors </span><span class="cov0" title="0">{
+                switch block.Type </span>{
+                case "feature_flags":<span class="cov0" title="0">
+                        p, err := NewFlagInjectorFromConfig(ctx, block.Config)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return fmt.Errorf("load feature flag preprocessor: %w", err)
+                        }</span>
+                        <span class="cov0" title="0">o.AddPreprocessor(p)</span>
+                default:<span class="cov0" title="0">
+                        return fmt.Errorf("unknown preprocessor type: %q", block.Type)</span>
+                }
+        }
+        <span class="cov10" title="3">return nil</span>
+}
+
+func NewFlagInjectorFromConfig(ctx context.Context, raw map[string]interface{}) (*FlagInjector, error) <span class="cov0" title="0">{
+        opts, err := config.Decode[FlagInjectorOptions](raw)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">var store *flagsdk.Store
+
+        switch </span>{
+        case opts.Source != nil:<span class="cov0" title="0">
+                src, err := featureflags.NewSourceFromConfig(opts.Source)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov0" title="0">store, err = src.Load(ctx)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("load flag preprocessor: %w", err)
+                }</span>
+                <span class="cov0" title="0">injector := NewFlagInjector(store, opts.Keys)
+                // Enable hot-swap
+                go src.Watch(ctx, func(newStore *flagsdk.Store) </span><span class="cov0" title="0">{
+                        injector.UpdateStore(newStore)
+                }</span>)
+                <span class="cov0" title="0">return injector, nil</span>
+        case opts.File != "":<span class="cov0" title="0">
+                path, err := config.ResolvePath(opts.File)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("resolve path: %w", err)
+                }</span>
+                <span class="cov0" title="0">store, err = flagsdk.NewStoreFromFile(path)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("load flag file: %w", err)
+                }</span>
+        case opts.Flags != nil:<span class="cov0" title="0">
+                store = flagsdk.NewStore(opts.Flags)</span>
+        default:<span class="cov0" title="0">
+                return nil, fmt.Errorf("featureflags preprocessor requires either 'file' or inline 'flags'")</span>
+        }
+
+        <span class="cov0" title="0">return NewFlagInjector(store, opts.Keys), nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package outputs
 
 import (
         "bytes"
@@ -489,7 +791,7 @@ func (h *httpOutput) WriteOutput(ctx context.Context, input map[string]interface
 }
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package outputs
+		<pre class="file" id="file10" style="display: none">package outputs
 
 import (
         "context"
@@ -528,7 +830,7 @@ func FromPlugin(ctx context.Context, block config.PluginBlock, stdout io.Writer)
 }
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package outputs
+		<pre class="file" id="file11" style="display: none">package outputs
 
 import (
         "cloud.google.com/go/pubsub"
@@ -601,8 +903,8 @@ type pubSubWriter struct {
         opts   PubSubOptions
 }
 
-func (w pubSubWriter) WriteOutput(ctx context.Context, input map[string]interface{}) error <span class="cov8" title="1">{
-        ctxCncl, cancel := context.WithTimeout(ctx, w.opts.Timeout)
+func (w pubSubWriter) WriteOutput(parentCtx context.Context, input map[string]interface{}) error <span class="cov8" title="1">{
+        ctxWithTimeout, cancel := context.WithTimeout(parentCtx, w.opts.Timeout)
         defer cancel()
 
         data, err := json.Marshal(input)
@@ -632,13 +934,13 @@ func (w pubSubWriter) WriteOutput(ctx context.Context, input map[string]interfac
         }
 
         // Publish
-        <span class="cov8" title="1">res := w.topic.Publish(ctxCncl, msg)
-        _, err = res.Get(ctxCncl)
+        <span class="cov8" title="1">res := w.topic.Publish(ctxWithTimeout, msg)
+        _, err = res.Get(ctxWithTimeout)
         return err</span>
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package outputs
+		<pre class="file" id="file12" style="display: none">package outputs
 
 import (
         "context"
@@ -668,7 +970,7 @@ func (w *stdoutWriter) WriteOutput(_ context.Context, data map[string]interface{
 }
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package sources
+		<pre class="file" id="file13" style="display: none">package sources
 
 import (
         "context"
@@ -761,7 +1063,7 @@ func (h *httpEventSource) Close() error <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package sources
+		<pre class="file" id="file14" style="display: none">package sources
 
 import "context"
 
@@ -820,7 +1122,7 @@ func (e *errorEventSource) Close() error <span class="cov1" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package sources
+		<pre class="file" id="file15" style="display: none">package sources
 
 import (
         "context"
@@ -855,7 +1157,7 @@ func FromPlugin(ctx context.Context, block config.PluginBlock, stdin io.Reader) 
 }
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">package sources
+		<pre class="file" id="file16" style="display: none">package sources
 
 import (
         "context"
