@@ -81,7 +81,7 @@
 				
 				<option value="file12">github.com/tommed/ducto-orchestrator/internal/outputs/stdout.go (100.0%)</option>
 				
-				<option value="file13">github.com/tommed/ducto-orchestrator/internal/sources/http.go (73.1%)</option>
+				<option value="file13">github.com/tommed/ducto-orchestrator/internal/sources/http.go (75.9%)</option>
 				
 				<option value="file14">github.com/tommed/ducto-orchestrator/internal/sources/input.go (100.0%)</option>
 				
@@ -235,7 +235,7 @@ func WithSignalContext(parent context.Context) context.Context <span class="cov9
 func withSignalContextRaw(parent context.Context, signals ...os.Signal) context.Context <span class="cov10" title="9">{
         ctx, stop := signal.NotifyContext(parent, signals...)
 
-        go func() </span><span class="cov8" title="6">{
+        go func() </span><span class="cov10" title="9">{
                 &lt;-ctx.Done()
                 stop() // clean up signal handlers
         }</span>()
@@ -347,6 +347,7 @@ import (
         "fmt"
         flagsdk "github.com/tommed/ducto-featureflags/sdk"
         "github.com/tommed/ducto-orchestrator/internal/config"
+        "os"
         "time"
 )
 
@@ -379,7 +380,7 @@ func NewStoreFromConfig(ctx context.Context, raw map[string]interface{}) (*flags
                 <span class="cov0" title="0">if err := opts.Validate(); err != nil </span><span class="cov0" title="0">{
                         return nil, fmt.Errorf("invalid http source config: %w", err)
                 }</span>
-                <span class="cov0" title="0">provider = flagsdk.NewHTTPProvider(opts.URL, opts.Token, opts.PollInterval())</span>
+                <span class="cov0" title="0">provider = flagsdk.NewHTTPProvider(opts.URL, opts.Token(), opts.PollInterval())</span>
 
         // Fail otherwise
         default:<span class="cov0" title="0">
@@ -392,9 +393,17 @@ func NewStoreFromConfig(ctx context.Context, raw map[string]interface{}) (*flags
 
 type HTTPSourceOptions struct {
         URL                 string            `json:"url" mapstructure:"url"`
-        Token               string            `json:"token" mapstructure:"token"`
+        TokenLiteral        string            `json:"token" mapstructure:"token"`
+        TokenEnv            string            `json:"token_env" mapstructure:"token_env"`
         PollIntervalSeconds int               `json:"poll_interval_seconds" mapstructure:"poll_interval_seconds"`
         EvalContext         map[string]string `json:"context" mapstructure:"context"`
+}
+
+func (o *HTTPSourceOptions) Token() string <span class="cov0" title="0">{
+        if o.TokenEnv != "" </span><span class="cov0" title="0">{
+                return os.Getenv(o.TokenEnv)
+        }</span>
+        <span class="cov0" title="0">return o.TokenLiteral</span>
 }
 
 func (o *HTTPSourceOptions) PollInterval() time.Duration <span class="cov0" title="0">{
@@ -971,8 +980,12 @@ func (h *httpEventSource) Start(ctx context.Context) (&lt;-chan map[string]inter
                 Addr:    h.Addr,
                 Handler: mux,
         }
-
         go func() </span><span class="cov8" title="1">{
+                &lt;-ctx.Done()
+                _ = h.server.Shutdown(context.Background())
+        }</span>()
+
+        <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{
                 _ = h.server.ListenAndServe()
         }</span>()
 

@@ -11,11 +11,11 @@ Ducto Orchestrator is versioned for obvious reasons. Here are the versions curre
 
 ## 🟣 Latest Draft
 
-- [Draft v1](./spec-v1.md)
+- No drafts at present
 
 ## 🟢 Latest Stable
 
-- No stable version is available
+- [v1](./spec-v1.md)
 
 ##  🔘 Other Versions
 

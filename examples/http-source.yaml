@@ -1,9 +1,43 @@
-program_file: simplest.json
+preprocessors:
+  - type: feature_flags
+    config:
+      tags:
+        env: prod
+        group: beta
+        region: UK
+        customer: mps
+      provider:
+        type: http
+        url: http://localhost:8080/api/flags
+        token_env: OUR_TOKEN
+        poll_interval_seconds: 5
+
+program:
+  version: 1
+  on_error: capture
+  instructions:
+    - op: copy
+      from: _flags.new_ui
+      to: enable_new_ui
+    - op: copy
+      from: _http.headers.User-Agent
+      to: remote.user_agent
+    - op: copy
+      from: _http.remote_addr
+      to: remote.addr
+    - op: string_join
+      from: remote.user_agent
+      to: remote.user_agent
+      value: ','
+    - op: delete
+      key: _http
+    - op: delete
+      key: _flags
 
 source:
   type: http
   config:
-    addr: ":8080"
+    addr: ":8081"
     meta_field: "_http"
 
 output:

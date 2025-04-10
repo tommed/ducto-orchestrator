@@ -72,6 +72,10 @@ func (h *httpEventSource) Start(ctx context.Context) (<-chan map[string]interfac
 		Addr:    h.Addr,
 		Handler: mux,
 	}
+	go func() {
+		<-ctx.Done()
+		_ = h.server.Shutdown(context.Background())
+	}()
 
 	go func() {
 		_ = h.server.ListenAndServe()

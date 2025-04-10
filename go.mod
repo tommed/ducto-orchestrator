@@ -8,7 +8,7 @@ require (
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	github.com/tommed/ducto-dsl v0.0.0-20250402194146-d70e8ca41fc5
-	github.com/tommed/ducto-featureflags v0.0.0-20250410114140-ff2029a5c002
+	github.com/tommed/ducto-featureflags v0.0.0-20250410154113-929cbab075dd
 )
 
 require (

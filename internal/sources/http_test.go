@@ -18,6 +18,9 @@ import (
 //goland:noinspection GoUnhandledErrorResult
 //goland:noinspection HttpUrlsUsage,GoUnhandledErrorResult
 func TestHTTPEventSource_SuccessfulEvent(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode")
+	}
 	// Arrange
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -30,6 +33,7 @@ func TestHTTPEventSource_SuccessfulEvent(t *testing.T) {
 	}).(*httpEventSource)
 	server := hijackHTTPEventSource(ctx, source)
 	defer server.Close()
+	time.Sleep(100 * time.Millisecond)
 
 	events, err := source.Start(ctx)
 	require.NoError(t, err)

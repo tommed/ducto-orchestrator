@@ -112,7 +112,7 @@ output:
 - [x] HTTP Trigger Support
 - [x] HTTP PUT/POST Output Writer
 - [ ] GCP Edition (Cloud Function: pubsub → pubsub)
-- [ ] Feature Flag Processor
+- [x] Feature Flag Processor
 - [ ] Output Attribute Projection
 - [ ] Logging Layer
 - [ ] Embeddable SDK Mode
