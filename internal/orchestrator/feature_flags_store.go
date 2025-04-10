@@ -6,6 +6,7 @@ import (
 	"fmt"
 	flagsdk "github.com/tommed/ducto-featureflags/sdk"
 	"github.com/tommed/ducto-orchestrator/internal/config"
+	"os"
 	"time"
 )
 
@@ -38,7 +39,7 @@ func NewStoreFromConfig(ctx context.Context, raw map[string]interface{}) (*flags
 		if err := opts.Validate(); err != nil {
 			return nil, fmt.Errorf("invalid http source config: %w", err)
 		}
-		provider = flagsdk.NewHTTPProvider(opts.URL, opts.Token, opts.PollInterval())
+		provider = flagsdk.NewHTTPProvider(opts.URL, opts.Token(), opts.PollInterval())
 
 	// Fail otherwise
 	default:
@@ -51,9 +52,17 @@ func NewStoreFromConfig(ctx context.Context, raw map[string]interface{}) (*flags
 
 type HTTPSourceOptions struct {
 	URL                 string            `json:"url" mapstructure:"url"`
-	Token               string            `json:"token" mapstructure:"token"`
+	TokenLiteral        string            `json:"token" mapstructure:"token"`
+	TokenEnv            string            `json:"token_env" mapstructure:"token_env"`
 	PollIntervalSeconds int               `json:"poll_interval_seconds" mapstructure:"poll_interval_seconds"`
 	EvalContext         map[string]string `json:"context" mapstructure:"context"`
+}
+
+func (o *HTTPSourceOptions) Token() string {
+	if o.TokenEnv != "" {
+		return os.Getenv(o.TokenEnv)
+	}
+	return o.TokenLiteral
 }
 
 func (o *HTTPSourceOptions) PollInterval() time.Duration {

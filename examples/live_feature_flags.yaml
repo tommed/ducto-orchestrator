@@ -10,9 +10,9 @@ preprocessors:
         customer: mps
       provider:
         type: http
-        url: http://localhost:8080/api/flags
-        token: some-token
-        poll_interval_seconds: 30
+        url: http://localhost:8080/api/flags.yaml
+        token_env: OUR_TOKEN
+        poll_interval_seconds: 5
 
 program:
   version: 1
