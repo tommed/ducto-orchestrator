@@ -70,7 +70,7 @@ coverage:
 
 example-simplest:
 	@echo "==> Building Example: Simplest"
-	echo '{"foo":"bar"}' | $(GO) run ./cmd/ducto-orchestrator -debug -program examples/simplest.json
+	echo '{"foo":"bar"}' | $(GO) run ./cmd/ducto-orchestrator -debug -program examples/01-simplest.yaml
 
 ducto-orchestrator-macos:
 	@echo "==> Building macOS CLI"

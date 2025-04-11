@@ -75,7 +75,7 @@ go install github.com/tommed/ducto-orchestrator/cmd/ducto-orchestrator@latest
 ### Run Example (stdin → transform → stdout)
 
 ```bash
-echo '{"foo": "bar"}' | ducto-orchestrator -config examples/simplest.yaml
+echo '{"foo": "bar"}' | ducto-orchestrator -config examples/01-simplest.yaml
 ```
 
 ```yaml
@@ -85,7 +85,7 @@ echo '{"foo": "bar"}' | ducto-orchestrator -config examples/simplest.yaml
 debug: true
 
 # Program by filepath...
-program_file: simplest.json
+program_file: 01-simplest_program.json
 # ...Or embed the program in your config file
 #program:
 #  version: 1

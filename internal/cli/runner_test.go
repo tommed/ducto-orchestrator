@@ -75,7 +75,7 @@ func TestRun_CoreCases(t *testing.T) {
 		},
 		{
 			name:           "valid config + stdin + transform",
-			args:           []string{"--config", "../../examples/simplest.yaml"},
+			args:           []string{"--config", "../../examples/01-simplest.yaml"},
 			stdin:          `{"foo":"bar"}`,
 			expectCode:     0,
 			expectInStdOut: `"greeting": "hello world"`,

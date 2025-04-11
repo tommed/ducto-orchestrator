@@ -17,10 +17,6 @@ type preprocessorCase struct {
 }
 
 func TestOrchestrator_E2E_Matrix(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping E2E tests in short mode")
-	}
-
 	base := "../../testdata/cases"
 
 	entries, err := os.ReadDir(base)
