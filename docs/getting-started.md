@@ -64,7 +64,7 @@ for more information about this component.
 go install github.com/tommed/ducto-orchestrator/cmd/ducto-orchestrator@latest
 ```
 
-### Run Example (stdin → transform → stdout)
+### Run Example (`stdin → transform → stdout`)
 
 ```bash
 echo '{"foo": "bar"}' | ducto-orchestrator -config examples/01-simplest.yaml
