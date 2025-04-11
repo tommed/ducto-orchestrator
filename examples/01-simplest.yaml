@@ -1,3 +1,4 @@
+# Paths are relative to this YAML file for portability
 program_file: 01-simplest_program.json
 
 source:

@@ -27,6 +27,9 @@ We actually have an example to match this: [01-simplest.yaml](../examples/01-sim
 
 In this situation, we have `stdin -> program -> stdout` as our pipeline. Simple eh?!
 
+Check out [ducto-dsl](https://github.com/tommed/ducto-dsl) to see all the supported 
+transformations - or, build your own!
+
 ---
 ## The 4-Stage Orchestrator (Feature Flags)
 
@@ -61,7 +64,7 @@ for more information about this component.
 go install github.com/tommed/ducto-orchestrator/cmd/ducto-orchestrator@latest
 ```
 
-### Run Example (stdin → transform → stdout)
+### Run Example (`stdin → transform → stdout`)
 
 ```bash
 echo '{"foo": "bar"}' | ducto-orchestrator -config examples/01-simplest.yaml
