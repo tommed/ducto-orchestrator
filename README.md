@@ -13,7 +13,6 @@
 > Lightweight, embeddable data-stream orchestrator using [Ducto-DSL](https://github.com/tommed/ducto-dsl)
 
 ---
-
 ## ✨ What is Ducto-Orchestrator?
 
 <p align="center">
@@ -31,7 +30,6 @@ Ducto-Orchestrator is a modular, highly extensible, stream-processing engine des
 It is the recommended runtime for automating, transforming, and routing event-driven data using Ducto.
 
 ---
-
 ## ✅ Features
 
 - Embeds the [Ducto-DSL](https://github.com/tommed/ducto-dsl) engine
@@ -42,10 +40,11 @@ It is the recommended runtime for automating, transforming, and routing event-dr
 - Clean architecture for minimal vendor lock-in
 - OpenTelemetry-ready
 
+Check out our [Getting Started Guide](./docs/getting-started.md).
+
 You can also check the [specifications here](docs/specs.md).
 
 ---
-
 ## 🟣 Typical Pipeline
 
 ```
@@ -53,7 +52,6 @@ You can also check the [specifications here](docs/specs.md).
 ```
 
 ---
-
 ## ✅ Example Use-Cases
 
 - Lightweight Event Routing
@@ -63,49 +61,6 @@ You can also check the [specifications here](docs/specs.md).
 - Serverless Event Transformation
 
 ---
-
-## 🚀 Getting Started
-
-### Install CLI
-
-```bash
-go install github.com/tommed/ducto-orchestrator/cmd/ducto-orchestrator@latest
-```
-
-### Run Example (stdin → transform → stdout)
-
-```bash
-echo '{"foo": "bar"}' | ducto-orchestrator -config examples/01-simplest.yaml
-```
-
-```yaml
-# example/http-source.yaml
-
-# Set here, or use -debug when calling the orchestrator
-debug: true
-
-# Program by filepath...
-program_file: 01-simplest_program.json
-# ...Or embed the program in your config file
-#program:
-#  version: 1
-#  instructions: []
-
-source:
-  type: http
-  config:
-    addr: ":8080"
-    meta_field: "_http"
-
-output:
-  type: stdout
-  config:
-    pretty: true
-
-```
-
----
-
 ## 🛣️ Roadmap
 
 - [x] Local CLI
@@ -121,30 +76,28 @@ output:
 
 ### Variations Planned
 
-Ducto for your local command line: 
+✅ Ducto for your local command line: 
 
 ![Ducto for the CLI](./assets/ducto-orchestrator-cli-logo-small.jpg)
 
-Ducto running in Google Cloud:
+Ducto running in Google Cloud (_coming soon_):
 
 ![Ducto for GCP](./assets/ducto-orchestrator-gcp-logo-small.jpg)
 
-Ducto running in Microsoft Azure:
+Ducto running in Microsoft Azure (_coming soon_):
 
 ![Ducto for Azure](./assets/ducto-orchestrator-azure-logo-small.jpg)
 
-Ducto running in Amazon Web Services (AWS):
+Ducto running in Amazon Web Services (AWS) (_coming soon_):
 
 ![Ducto for AWS](./assets/ducto-orchestrator-aws-logo-small.jpg)
 
 ---
-
 ## 🧑‍💻 Contributing
 
 Please see our [Contributing Guide](./CONTRIBUTING.md).
 
 ---
-
 ## 🤖 Related Projects
 
 ![Topology Diagram of Ducto](./assets/topology-medium.png)
@@ -153,7 +106,6 @@ Please see our [Contributing Guide](./CONTRIBUTING.md).
 - [ducto-featureflags](https://github.com/tommed/ducto-featureflags) - A lightweight, embeddable, and pluggable feature flag engine
 
 ---
-
 ## 📜 License
 
 - Code is all licensed under [MIT](./LICENSE)
