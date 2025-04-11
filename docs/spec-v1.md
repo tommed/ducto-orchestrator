@@ -5,7 +5,7 @@
     </a>
 </p>
 
-# Ducto Orchestrator — Specification (v1)
+# Ducto Orchestrator - Specification (v1)
 
 ## Purpose
 Ducto-Orchestrator is a lightweight, embeddable, and extensible data stream processor designed to execute transformation pipelines using the Ducto-DSL as its core transformation language.
