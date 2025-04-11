@@ -1,19 +1,23 @@
+# We can add -debug flag when running the orchestrator CLI to override this
 debug: false
 
 preprocessors:
   - type: feature_flags
     config:
+      # tags for this deployment
       tags:
         env: prod
         group: beta
         region: UK
         customer: mps
+      # remote web service to fetch feature flags
       provider:
         type: http
         url: http://localhost:8080/api/flags.yaml
         token_env: OUR_TOKEN
-        poll_interval_seconds: 5
+        poll_interval_seconds: 30
 
+# Our program (defined in-line)
 program:
   version: 1
   instructions:
@@ -21,10 +25,11 @@ program:
       key: was_here
       value: true
 
-
+# Source
 source:
   type: stdin
 
+# Output
 output:
   type: stdout
   config:
