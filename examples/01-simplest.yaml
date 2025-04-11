@@ -1,4 +1,4 @@
-program_file: simplest.json
+program_file: 01-simplest_program.json
 
 source:
   type: stdin
