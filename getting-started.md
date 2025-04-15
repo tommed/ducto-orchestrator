@@ -78,6 +78,6 @@ echo '{"foo": "bar"}' | ducto-orchestrator -config examples/01-simplest.yaml
 ```
 
 ---
-## Related Projects
-- [ducto-dsl](https://github.com/tommed/ducto-dsl) - The DSL engine powering Ducto-Orchestrator
-- [ducto-featureflags](https://github.com/tommed/ducto-featureflags) - A lightweight, embeddable, and pluggable feature flag engine
+## Next Chapter
+
+[Hosting Ducto on GCP Cloud Run](./gcp-cloud-run.md)
