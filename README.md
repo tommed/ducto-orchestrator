@@ -29,6 +29,8 @@ Ducto-Orchestrator is a modular, highly extensible, stream-processing engine des
 
 It is the recommended runtime for automating, transforming, and routing event-driven data using Ducto.
 
+Check out our [Getting Started Guide](./docs/getting-started.md).
+
 ---
 ## ✅ Features
 
@@ -39,8 +41,6 @@ It is the recommended runtime for automating, transforming, and routing event-dr
 - Ready for future `feature-flag` integration
 - Clean architecture for minimal vendor lock-in
 - OpenTelemetry-ready
-
-Check out our [Getting Started Guide](./docs/getting-started.md).
 
 You can also check the [specifications here](docs/specs.md).
 
