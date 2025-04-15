@@ -11,10 +11,6 @@ on:
     - 'main'
     - 'dev'
 
-# For interacting with Cloud Platforms
-env:
-  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_GCP_CREDENTIALS }}
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -50,6 +46,12 @@ jobs:
           sleep 5
         env:
           GOOGLE_CLOUD_PROJECT: test-project
+
+      # For GCS Unit Tests
+      - uses: 'google-github-actions/auth@v2'
+        with:
+          project_id: 'testsandbox-3cb3f'
+          credentials_json: ${{ secrets.GOOGLE_GCP_CREDENTIALS }}
 
       - name: Makefile CI
         run: make ci
