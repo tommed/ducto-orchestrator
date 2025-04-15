@@ -4,15 +4,15 @@ on:
   push:
     branches:
     - 'main'
-    - 'develop'
+    - 'dev'
     - 'feature/**'
   pull_request:
     branches:
     - 'main'
-    - 'develop'
+    - 'dev'
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -65,6 +65,15 @@ jobs:
           name: coverage-report
           path: coverage.out
 
+      - name: Upload Docker Binaries as Artifacts
+        uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/main'
+        with:
+          name: docker
+          # List any new ones here
+          path: |
+            docker-orchestrator-cloudrun
+
       - name: Deploy Coverage HTML to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
@@ -72,3 +81,31 @@ jobs:
           publish_dir: .
           publish_branch: gh-pages
           allow_empty_commit: false
+
+  # Docker ~> Google Cloud Run
+  build-cloudrun-image:
+    needs: ['build']
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Cloud Run image
+        run: |
+          docker build -f Dockerfile.cloudrun -t ghcr.io/${{ github.repository }}/ducto-orchestrator-cloudrun:${{ github.run_number }} .
+          docker tag ghcr.io/${{ github.repository }}/ducto-orchestrator-cloudrun:${{ github.run_number }} ghcr.io/${{ github.repository }}/ducto-orchestrator-cloudrun:latest
+          docker push ghcr.io/${{ github.repository }}/ducto-orchestrator-cloudrun:${{ github.run_number }}
+          docker push ghcr.io/${{ github.repository }}/ducto-orchestrator-cloudrun:latest
