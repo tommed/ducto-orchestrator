@@ -60,7 +60,7 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.out
+          files: ./docs/coverage.out
           flags: unittests
           name: codecov-coverage
           fail_ci_if_error: true
@@ -69,23 +69,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: coverage.out
+          path: docs/coverage.out
 
-      - name: Upload Docker Binaries as Artifacts
-        uses: actions/upload-artifact@v4
-        if: github.ref == 'refs/heads/main'
-        with:
-          name: docker
-          # List any new ones here
-          path: |
-            docker-orchestrator-cloudrun
-
-      - run: rm gha-creds-*.json
       - name: Deploy Coverage HTML to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
+          publish_dir: docs
           publish_branch: gh-pages
           allow_empty_commit: false
 
@@ -98,9 +88,9 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: docker
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with: {go-version: '1.24'}
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
       - name: Login to GitHub Container Registry
