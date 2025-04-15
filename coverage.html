@@ -255,7 +255,7 @@ func WithSignalContext(parent context.Context) context.Context <span class="cov9
 func withSignalContextRaw(parent context.Context, signals ...os.Signal) context.Context <span class="cov10" title="10">{
         ctx, stop := signal.NotifyContext(parent, signals...)
 
-        go func() </span><span class="cov10" title="10">{
+        go func() </span><span class="cov3" title="2">{
                 &lt;-ctx.Done()
                 stop() // clean up signal handlers
         }</span>()
