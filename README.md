@@ -76,11 +76,11 @@ You can also check the [specifications here](docs/specs.md).
 
 ### Variations Planned
 
-✅ Ducto for your local command line: 
+✅ [Ducto for your local command line](./docs/getting-started.md): 
 
 ![Ducto for the CLI](./assets/ducto-orchestrator-cli-logo-small.jpg)
 
-Ducto running in Google Cloud (_coming soon_):
+✅ [Ducto running in Google Cloud](./docs/gcp-cloud-run.md)
 
 ![Ducto for GCP](./assets/ducto-orchestrator-gcp-logo-small.jpg)
 
