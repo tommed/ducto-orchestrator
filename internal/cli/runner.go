@@ -8,14 +8,12 @@ import (
 	"github.com/tommed/ducto-orchestrator/internal/sources"
 	"io"
 
-	"github.com/tommed/ducto-dsl/transform"
-
 	"github.com/tommed/ducto-orchestrator/internal/config"
 	"github.com/tommed/ducto-orchestrator/internal/orchestrator"
 )
 
 //goland:noinspection GoUnhandledErrorResult
-func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+func Run(args []string, stdin io.Reader, stdout, stderr io.Writer, cfgLoader config.Loader) int {
 	fs := flag.NewFlagSet("ducto-orchestrator", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 
@@ -33,29 +31,21 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	cfg, err := config.Load(configPath)
+	// Listen out for Ctl+C / Signal Interrupt
+	ctx := WithSignalContext(context.Background())
+
+	cfg, err := cfgLoader.Load(ctx, configPath)
 	if err != nil {
 		fmt.Fprintf(stderr, "failed to load config: %v\n", err)
 		return 1
 	}
 
-	// Listen out for Ctl+C / Signal Interrupt
-	ctx := WithSignalContext(context.Background())
-
-	// Load program
-	var prog *transform.Program
-	if cfg.Program != nil {
-		prog = cfg.Program
-	} else if cfg.ProgramFile != "" {
-		prog, err = transform.LoadProgram(cfg.ProgramFile)
-		if err != nil {
-			fmt.Fprintf(stderr, "%v\n", err)
-			return 1
-		}
-	} else {
+	// Load program (the cfg loader will have already set this inline for us)
+	if cfg.Program == nil {
 		fmt.Fprintln(stderr, "no DSL program or program_file defined")
 		return 1
 	}
+
 	// Debug can come from cli flag or config, if any are true
 	if debug {
 		cfg.Debug = true
@@ -77,7 +67,7 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 
 	// Run orchestrator
-	o := orchestrator.New(prog, cfg.Debug)
+	o := orchestrator.New(cfg.Program, cfg.Debug)
 
 	// Install our preprocessors
 	if err := o.InstallPreprocessorsFromConfig(ctx, cfg.Preprocessors); err != nil {
