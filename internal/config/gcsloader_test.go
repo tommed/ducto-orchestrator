@@ -1,5 +1,5 @@
 // File: ducto-orchestrator/internal/config/gcsloader_test.go
-package config_test
+package config
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tommed/ducto-orchestrator/internal/config"
 )
 
 func TestGCSLoader_InvalidURIScheme(t *testing.T) {
@@ -25,8 +24,8 @@ func TestGCSLoader_InvalidGCSURIFormat(t *testing.T) {
 // GCSLoaderMock is a stub to isolate URI parsing logic
 type GCSLoaderMock struct{}
 
-func (m *GCSLoaderMock) Load(ctx context.Context, uri string) (*config.Config, error) {
-	l, _ := config.NewGCSLoader()
+func (m *GCSLoaderMock) Load(ctx context.Context, uri string) (*Config, error) {
+	l := &gcsLoader{}
 	return l.Load(ctx, uri)
 }
 
@@ -35,7 +34,7 @@ func TestGCSLoader_Load_PublicExample(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	loader, err := config.NewGCSLoader()
+	loader, err := NewGCSLoader()
 	require.NoError(t, err)
 
 	ctx := context.Background()
