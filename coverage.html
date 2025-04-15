@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/tommed/ducto-orchestrator/internal/config/config.go (56.2%)</option>
 				
-				<option value="file4">github.com/tommed/ducto-orchestrator/internal/config/fileloader.go (86.2%)</option>
+				<option value="file4">github.com/tommed/ducto-orchestrator/internal/config/fileloader.go (96.6%)</option>
 				
 				<option value="file5">github.com/tommed/ducto-orchestrator/internal/orchestrator/feature_flags_store.go (0.0%)</option>
 				
@@ -263,7 +263,7 @@ type Config struct {
 
 var configDir string
 
-func SetConfigFilePath(absPath string) <span class="cov7" title="6">{
+func SetConfigFilePath(absPath string) <span class="cov7" title="7">{
         configDir = filepath.Dir(absPath)
 }</span>
 
@@ -319,62 +319,62 @@ import (
 type FileLoader struct{}
 
 // Load implements Loader. It accepts a path to a local YAML or JSON file.
-func (f *FileLoader) Load(_ context.Context, uri string) (*Config, error) <span class="cov8" title="8">{
+func (f *FileLoader) Load(_ context.Context, uri string) (*Config, error) <span class="cov8" title="10">{
         // Accept either bare path or file:// URI
         path := strings.TrimPrefix(uri, "file://")
-        if path == "" </span><span class="cov0" title="0">{
+        if path == "" </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("fileloader: missing config file path")
         }</span>
 
-        <span class="cov8" title="8">return LoadFromPath(path)</span>
+        <span class="cov8" title="9">return LoadFromPath(path)</span>
 }
 
 // LoadFromPath loads the config from a local file, resolves program paths, and stores the source path.
-func LoadFromPath(path string) (*Config, error) <span class="cov10" title="12">{
+func LoadFromPath(path string) (*Config, error) <span class="cov10" title="14">{
         absPath, err := filepath.Abs(path)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("get abs path: %w", err)
         }</span>
 
-        <span class="cov10" title="12">data, err := os.ReadFile(absPath)
+        <span class="cov10" title="14">data, err := os.ReadFile(absPath)
         if err != nil </span><span class="cov3" title="2">{
                 return nil, fmt.Errorf("read config file: %w", err)
         }</span>
 
-        <span class="cov9" title="10">var cfg Config
+        <span class="cov9" title="12">var cfg Config
         switch </span>{
-        case strings.HasSuffix(absPath, ".json"):<span class="cov0" title="0">
+        case strings.HasSuffix(absPath, ".json"):<span class="cov1" title="1">
                 err = json.Unmarshal(data, &amp;cfg)</span>
-        case strings.HasSuffix(absPath, ".yaml"), strings.HasSuffix(absPath, ".yml"):<span class="cov9" title="10">
+        case strings.HasSuffix(absPath, ".yaml"), strings.HasSuffix(absPath, ".yml"):<span class="cov8" title="10">
                 err = yaml.Unmarshal(data, &amp;cfg)</span>
-        default:<span class="cov0" title="0">
+        default:<span class="cov1" title="1">
                 return nil, fmt.Errorf("unsupported config file extension: %s", absPath)</span>
         }
-        <span class="cov9" title="10">if err != nil </span><span class="cov1" title="1">{
+        <span class="cov9" title="11">if err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("parse config: %w", err)
         }</span>
 
-        <span class="cov8" title="9">cfgDir := filepath.Dir(absPath)
+        <span class="cov8" title="10">cfgDir := filepath.Dir(absPath)
         if cfg.ProgramFile != "" &amp;&amp; !filepath.IsAbs(cfg.ProgramFile) </span><span class="cov7" title="6">{
                 cfg.ProgramFile = filepath.Join(cfgDir, cfg.ProgramFile)
         }</span>
 
         // Resolve program if necessary
-        <span class="cov8" title="9">switch </span>{
-        case cfg.Program != nil:<span class="cov3" title="2"></span>
+        <span class="cov8" title="10">switch </span>{
+        case cfg.Program != nil:<span class="cov4" title="3"></span>
                 // already embedded
         case cfg.ProgramFile != "":<span class="cov7" title="6">
                 prog, err := transform.LoadProgram(cfg.ProgramFile)
                 if err != nil </span><span class="cov3" title="2">{
                         return nil, fmt.Errorf("load program file: %w", err)
                 }</span>
-                <span class="cov6" title="4">cfg.Program = prog
+                <span class="cov5" title="4">cfg.Program = prog
                 cfg.ProgramFile = ""</span>
         default:<span class="cov1" title="1">
                 return nil, fmt.Errorf("no program defined in config")</span>
         }
 
-        <span class="cov7" title="6">SetConfigFilePath(absPath)
+        <span class="cov7" title="7">SetConfigFilePath(absPath)
         return &amp;cfg, nil</span>
 }
 </pre>

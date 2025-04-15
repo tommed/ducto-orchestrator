@@ -117,8 +117,8 @@ Strategies:
 
 ---
 ## 🧩 Next Steps
-- [ ] Implement `FileLoader`
+- [x] Implement `FileLoader`
+- [x] Wire CLI to accept `--config <uri>`
 - [ ] Implement `GCSLoader`
-- [ ] Wire CLI to accept `--config <uri>`
 - [ ] Support program resolution hierarchy
 - [ ] Optional: `NewLoaderForScheme()` helper for automatic dispatch
