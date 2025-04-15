@@ -11,6 +11,10 @@ on:
     - 'main'
     - 'dev'
 
+# For interacting with Cloud Platforms
+env:
+  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_GCP_CREDENTIALS }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
