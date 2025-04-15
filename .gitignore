@@ -7,7 +7,9 @@
 *.dll
 *.so
 *.dylib
-./ducto-orchestrator*
+./ducto-orchestrator
+./ducto-orchestrator.exe
+./ducto-orchestrator-cloudrun
 .idea
 
 # Test binary, built with `go test -c`
