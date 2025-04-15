@@ -3,7 +3,7 @@
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>ducto-orchestrator: Go Coverage Report</title>
+		<title>ducto-orchestrator-cloudrun: Go Coverage Report</title>
 		<style>
 			body {
 				background: black;
@@ -55,41 +55,47 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/tommed/ducto-orchestrator/cmd/ducto-orchestrator/main.go (0.0%)</option>
+				<option value="file0">github.com/tommed/ducto-orchestrator/cmd/ducto-orchestrator-cloudrun/main.go (0.0%)</option>
 				
-				<option value="file1">github.com/tommed/ducto-orchestrator/internal/cli/runner.go (89.7%)</option>
+				<option value="file1">github.com/tommed/ducto-orchestrator/cmd/ducto-orchestrator/main.go (0.0%)</option>
 				
-				<option value="file2">github.com/tommed/ducto-orchestrator/internal/cli/signal.go (100.0%)</option>
+				<option value="file2">github.com/tommed/ducto-orchestrator/internal/cli/runner.go (90.2%)</option>
 				
-				<option value="file3">github.com/tommed/ducto-orchestrator/internal/config/config.go (56.2%)</option>
+				<option value="file3">github.com/tommed/ducto-orchestrator/internal/cli/signal.go (100.0%)</option>
 				
-				<option value="file4">github.com/tommed/ducto-orchestrator/internal/config/fileloader.go (96.6%)</option>
+				<option value="file4">github.com/tommed/ducto-orchestrator/internal/config/config.go (56.2%)</option>
 				
-				<option value="file5">github.com/tommed/ducto-orchestrator/internal/orchestrator/feature_flags_store.go (0.0%)</option>
+				<option value="file5">github.com/tommed/ducto-orchestrator/internal/config/fileloader.go (91.7%)</option>
 				
-				<option value="file6">github.com/tommed/ducto-orchestrator/internal/orchestrator/flag_injector.go (100.0%)</option>
+				<option value="file6">github.com/tommed/ducto-orchestrator/internal/config/gcsloader.go (77.3%)</option>
 				
-				<option value="file7">github.com/tommed/ducto-orchestrator/internal/orchestrator/orchestrator.go (92.3%)</option>
+				<option value="file7">github.com/tommed/ducto-orchestrator/internal/config/parse.go (100.0%)</option>
 				
-				<option value="file8">github.com/tommed/ducto-orchestrator/internal/orchestrator/pre_flaginjector.go (40.0%)</option>
+				<option value="file8">github.com/tommed/ducto-orchestrator/internal/orchestrator/feature_flags_store.go (0.0%)</option>
 				
-				<option value="file9">github.com/tommed/ducto-orchestrator/internal/orchestrator/preprocessor.go (75.0%)</option>
+				<option value="file9">github.com/tommed/ducto-orchestrator/internal/orchestrator/flag_injector.go (100.0%)</option>
 				
-				<option value="file10">github.com/tommed/ducto-orchestrator/internal/outputs/http.go (93.9%)</option>
+				<option value="file10">github.com/tommed/ducto-orchestrator/internal/orchestrator/orchestrator.go (92.3%)</option>
 				
-				<option value="file11">github.com/tommed/ducto-orchestrator/internal/outputs/plugin.go (85.7%)</option>
+				<option value="file11">github.com/tommed/ducto-orchestrator/internal/orchestrator/pre_flaginjector.go (40.0%)</option>
 				
-				<option value="file12">github.com/tommed/ducto-orchestrator/internal/outputs/pubsub.go (66.7%)</option>
+				<option value="file12">github.com/tommed/ducto-orchestrator/internal/orchestrator/preprocessor.go (75.0%)</option>
 				
-				<option value="file13">github.com/tommed/ducto-orchestrator/internal/outputs/stdout.go (100.0%)</option>
+				<option value="file13">github.com/tommed/ducto-orchestrator/internal/outputs/http.go (93.9%)</option>
 				
-				<option value="file14">github.com/tommed/ducto-orchestrator/internal/sources/http.go (75.9%)</option>
+				<option value="file14">github.com/tommed/ducto-orchestrator/internal/outputs/plugin.go (85.7%)</option>
 				
-				<option value="file15">github.com/tommed/ducto-orchestrator/internal/sources/input.go (100.0%)</option>
+				<option value="file15">github.com/tommed/ducto-orchestrator/internal/outputs/pubsub.go (66.7%)</option>
 				
-				<option value="file16">github.com/tommed/ducto-orchestrator/internal/sources/plugin.go (54.5%)</option>
+				<option value="file16">github.com/tommed/ducto-orchestrator/internal/outputs/stdout.go (100.0%)</option>
 				
-				<option value="file17">github.com/tommed/ducto-orchestrator/internal/sources/stdin.go (100.0%)</option>
+				<option value="file17">github.com/tommed/ducto-orchestrator/internal/sources/http.go (88.2%)</option>
+				
+				<option value="file18">github.com/tommed/ducto-orchestrator/internal/sources/input.go (100.0%)</option>
+				
+				<option value="file19">github.com/tommed/ducto-orchestrator/internal/sources/plugin.go (54.5%)</option>
+				
+				<option value="file20">github.com/tommed/ducto-orchestrator/internal/sources/stdin.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -121,11 +127,28 @@ import (
 )
 
 func main() <span class="cov0" title="0">{
+        loader, err := config.NewGCSLoader() // supports `gs://` paths
+        if err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+        <span class="cov0" title="0">os.Exit(cli.Run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr, loader))</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package main
+
+import (
+        "github.com/tommed/ducto-orchestrator/internal/cli"
+        "github.com/tommed/ducto-orchestrator/internal/config"
+        "os"
+)
+
+func main() <span class="cov0" title="0">{
         os.Exit(cli.Run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr, &amp;config.FileLoader{}))
 }</span>
 </pre>
 		
-		<pre class="file" id="file1" style="display: none">package cli
+		<pre class="file" id="file2" style="display: none">package cli
 
 import (
         "context"
@@ -134,6 +157,7 @@ import (
         "github.com/tommed/ducto-orchestrator/internal/outputs"
         "github.com/tommed/ducto-orchestrator/internal/sources"
         "io"
+        "os"
 
         "github.com/tommed/ducto-orchestrator/internal/config"
         "github.com/tommed/ducto-orchestrator/internal/orchestrator"
@@ -152,6 +176,9 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer, cfgLoader con
         if err := fs.Parse(args); err != nil </span><span class="cov1" title="1">{
                 fmt.Fprintf(stderr, "failed to parse args: %v\n", err)
                 return 1
+        }</span>
+        <span class="cov9" title="9">if configPath == "" </span><span class="cov1" title="1">{
+                configPath = os.Getenv("CONFIG_URI")
         }</span>
         <span class="cov9" title="9">if configPath == "" </span><span class="cov1" title="1">{
                 fmt.Fprintln(stderr, "missing required --config path")
@@ -212,7 +239,7 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer, cfgLoader con
 }
 </pre>
 		
-		<pre class="file" id="file2" style="display: none">package cli
+		<pre class="file" id="file3" style="display: none">package cli
 
 import (
         "context"
@@ -228,7 +255,7 @@ func WithSignalContext(parent context.Context) context.Context <span class="cov9
 func withSignalContextRaw(parent context.Context, signals ...os.Signal) context.Context <span class="cov10" title="10">{
         ctx, stop := signal.NotifyContext(parent, signals...)
 
-        go func() </span><span class="cov10" title="10">{
+        go func() </span><span class="cov9" title="9">{
                 &lt;-ctx.Done()
                 stop() // clean up signal handlers
         }</span>()
@@ -237,7 +264,7 @@ func withSignalContextRaw(parent context.Context, signals ...os.Signal) context.
 }
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">package config
+		<pre class="file" id="file4" style="display: none">package config
 
 import (
         "fmt"
@@ -263,7 +290,7 @@ type Config struct {
 
 var configDir string
 
-func SetConfigFilePath(absPath string) <span class="cov7" title="7">{
+func SetConfigFilePath(absPath string) <span class="cov9" title="11">{
         configDir = filepath.Dir(absPath)
 }</span>
 
@@ -302,10 +329,148 @@ func Decode[T any](raw map[string]interface{}) (*T, error) <span class="cov10" t
 }
 </pre>
 		
-		<pre class="file" id="file4" style="display: none">package config
+		<pre class="file" id="file5" style="display: none">package config
 
 import (
         "context"
+        "fmt"
+        "path/filepath"
+        "strings"
+)
+
+type FileLoader struct{}
+
+// Load implements Loader. It accepts a path to a local YAML or JSON file.
+func (f *FileLoader) Load(_ context.Context, uri string) (*Config, error) <span class="cov10" title="10">{
+        if uri == "" </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("fileloader: missing config file path")
+        }</span>
+
+        // Accept either bare path or file:// URI
+        <span class="cov9" title="9">path := strings.TrimPrefix(uri, "file://")
+        absPath, err := filepath.Abs(path)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("get abs path: %w", err)
+        }</span>
+
+        <span class="cov9" title="9">cfg, err := ParseConfig(absPath)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov9" title="8">if err := FinalizeConfig(cfg, filepath.Dir(absPath)); err != nil </span><span class="cov3" title="2">{
+                return nil, err
+        }</span>
+        
+        <span class="cov8" title="6">return cfg, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package config
+
+import (
+        "context"
+        "fmt"
+        "io"
+        "os"
+        "path/filepath"
+        "strings"
+
+        "cloud.google.com/go/storage"
+)
+
+type gcsLoader struct {
+        client *storage.Client
+}
+
+// NewGCSLoader builds a new Loader which supports `gs://` GCS URIs.
+func NewGCSLoader() (Loader, error) <span class="cov1" title="1">{
+        client, err := storage.NewClient(context.Background())
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="1">return &amp;gcsLoader{client: client}, nil</span>
+}
+
+// Load downloads the config from a GCS URI (gs://bucket/key.yaml) and resolves DSL if needed.
+//
+//goland:noinspection GoUnhandledErrorResult
+func (g *gcsLoader) Load(ctx context.Context, uri string) (*Config, error) <span class="cov10" title="3">{
+        if !strings.HasPrefix(uri, "gs://") </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("gcsloader: invalid URI scheme: %s", uri)
+        }</span>
+
+        <span class="cov6" title="2">bucket, object, err := parseGCSURI(uri)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov1" title="1">tmpFile, err := os.CreateTemp("", "ducto-config-*.yaml")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("gcsloader: temp file: %w", err)
+        }</span>
+        <span class="cov1" title="1">defer tmpFile.Close()
+
+        rc, err := g.client.Bucket(bucket).Object(object).NewReader(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("gcsloader: read object: %w", err)
+        }</span>
+        <span class="cov1" title="1">defer rc.Close()
+
+        if _, err := io.Copy(tmpFile, rc); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("gcsloader: download config: %w", err)
+        }</span>
+
+        <span class="cov1" title="1">cfg, err := ParseConfig(tmpFile.Name())
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // If the program_file is itself a gs:// URI, resolve and load it manually
+        <span class="cov1" title="1">if strings.HasPrefix(cfg.ProgramFile, "gs://") </span><span class="cov1" title="1">{
+                progBucket, progObject, err := parseGCSURI(cfg.ProgramFile)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("gcsloader: program_file invalid URI: %w", err)
+                }</span>
+
+                <span class="cov1" title="1">progTmp, err := os.CreateTemp("", "ducto-program-*.json")
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("gcsloader: temp file for program: %w", err)
+                }</span>
+                <span class="cov1" title="1">defer progTmp.Close()
+
+                prc, err := g.client.Bucket(progBucket).Object(progObject).NewReader(ctx)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("gcsloader: read program_file object: %w", err)
+                }</span>
+                <span class="cov1" title="1">defer prc.Close()
+
+                if _, err := io.Copy(progTmp, prc); err != nil </span><span class="cov0" title="0">{
+                        return nil, fmt.Errorf("gcsloader: download program_file: %w", err)
+                }</span>
+
+                <span class="cov1" title="1">cfg.ProgramFile = progTmp.Name()</span>
+        }
+
+        <span class="cov1" title="1">if err := FinalizeConfig(cfg, filepath.Dir(tmpFile.Name())); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov1" title="1">return cfg, nil</span>
+}
+
+func parseGCSURI(uri string) (bucket, object string, err error) <span class="cov10" title="3">{
+        parts := strings.SplitN(strings.TrimPrefix(uri, "gs://"), "/", 2)
+        if len(parts) != 2 </span><span class="cov1" title="1">{
+                return "", "", fmt.Errorf("gcsloader: invalid GCS URI: %s", uri)
+        }</span>
+        <span class="cov6" title="2">return parts[0], parts[1], nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package config
+
+import (
         "encoding/json"
         "fmt"
         "os"
@@ -316,70 +481,56 @@ import (
         "gopkg.in/yaml.v3"
 )
 
-type FileLoader struct{}
-
-// Load implements Loader. It accepts a path to a local YAML or JSON file.
-func (f *FileLoader) Load(_ context.Context, uri string) (*Config, error) <span class="cov8" title="10">{
-        // Accept either bare path or file:// URI
-        path := strings.TrimPrefix(uri, "file://")
-        if path == "" </span><span class="cov1" title="1">{
-                return nil, fmt.Errorf("fileloader: missing config file path")
-        }</span>
-
-        <span class="cov8" title="9">return LoadFromPath(path)</span>
-}
-
-// LoadFromPath loads the config from a local file, resolves program paths, and stores the source path.
-func LoadFromPath(path string) (*Config, error) <span class="cov10" title="14">{
-        absPath, err := filepath.Abs(path)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, fmt.Errorf("get abs path: %w", err)
-        }</span>
-
-        <span class="cov10" title="14">data, err := os.ReadFile(absPath)
+// ParseConfig reads and parses the config file without resolving program_file.
+func ParseConfig(path string) (*Config, error) <span class="cov10" title="15">{
+        data, err := os.ReadFile(path)
         if err != nil </span><span class="cov3" title="2">{
-                return nil, fmt.Errorf("read config file: %w", err)
+                return nil, fmt.Errorf("read config: %w", err)
         }</span>
 
-        <span class="cov9" title="12">var cfg Config
+        <span class="cov9" title="13">var cfg Config
         switch </span>{
-        case strings.HasSuffix(absPath, ".json"):<span class="cov1" title="1">
+        case strings.HasSuffix(path, ".json"):<span class="cov1" title="1">
                 err = json.Unmarshal(data, &amp;cfg)</span>
-        case strings.HasSuffix(absPath, ".yaml"), strings.HasSuffix(absPath, ".yml"):<span class="cov8" title="10">
+        case strings.HasSuffix(path, ".yaml"), strings.HasSuffix(path, ".yml"):<span class="cov8" title="11">
                 err = yaml.Unmarshal(data, &amp;cfg)</span>
         default:<span class="cov1" title="1">
-                return nil, fmt.Errorf("unsupported config file extension: %s", absPath)</span>
+                return nil, fmt.Errorf("unsupported config extension: %s", path)</span>
         }
-        <span class="cov9" title="11">if err != nil </span><span class="cov1" title="1">{
-                return nil, fmt.Errorf("parse config: %w", err)
+        <span class="cov9" title="12">if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("decode config: %w", err)
         }</span>
 
-        <span class="cov8" title="10">cfgDir := filepath.Dir(absPath)
-        if cfg.ProgramFile != "" &amp;&amp; !filepath.IsAbs(cfg.ProgramFile) </span><span class="cov7" title="6">{
-                cfg.ProgramFile = filepath.Join(cfgDir, cfg.ProgramFile)
+        <span class="cov8" title="11">return &amp;cfg, nil</span>
+}
+
+// FinalizeConfig resolves relative paths and loads the DSL program if needed.
+func FinalizeConfig(cfg *Config, basedir string) error <span class="cov8" title="11">{
+        SetConfigFilePath(basedir)
+
+        if cfg.Program != nil </span><span class="cov4" title="3">{
+                return nil
         }</span>
 
-        // Resolve program if necessary
-        <span class="cov8" title="10">switch </span>{
-        case cfg.Program != nil:<span class="cov4" title="3"></span>
-                // already embedded
-        case cfg.ProgramFile != "":<span class="cov7" title="6">
-                prog, err := transform.LoadProgram(cfg.ProgramFile)
-                if err != nil </span><span class="cov3" title="2">{
-                        return nil, fmt.Errorf("load program file: %w", err)
+        <span class="cov7" title="8">if cfg.ProgramFile != "" </span><span class="cov7" title="7">{
+                progPath := cfg.ProgramFile
+                if !filepath.IsAbs(progPath) </span><span class="cov6" title="6">{
+                        progPath = filepath.Join(basedir, progPath)
                 }</span>
-                <span class="cov5" title="4">cfg.Program = prog
-                cfg.ProgramFile = ""</span>
-        default:<span class="cov1" title="1">
-                return nil, fmt.Errorf("no program defined in config")</span>
+                <span class="cov7" title="7">prog, err := transform.LoadProgram(progPath)
+                if err != nil </span><span class="cov3" title="2">{
+                        return fmt.Errorf("load program: %w", err)
+                }</span>
+                <span class="cov6" title="5">cfg.Program = prog
+                cfg.ProgramFile = ""
+                return nil</span>
         }
 
-        <span class="cov7" title="7">SetConfigFilePath(absPath)
-        return &amp;cfg, nil</span>
+        <span class="cov1" title="1">return fmt.Errorf("no program or program_file specified")</span>
 }
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package orchestrator
+		<pre class="file" id="file8" style="display: none">package orchestrator
 
 import (
         "context"
@@ -413,7 +564,7 @@ func NewStoreFromConfig(ctx context.Context, raw map[string]interface{}) (*flags
 
         // HTTP Watcher with 304 smart re-loading
         case "http":<span class="cov0" title="0">
-                opts, err := config.Decode[HTTPSourceOptions](raw)
+                opts, err := config.Decode[flagsHTTPSourceOptions](raw)
                 if err != nil </span><span class="cov0" title="0">{
                         return nil, fmt.Errorf("invalid http source config: %w", err)
                 }</span>
@@ -431,7 +582,7 @@ func NewStoreFromConfig(ctx context.Context, raw map[string]interface{}) (*flags
         <span class="cov0" title="0">return flagsdk.NewDynamicStore(ctx, provider), nil</span>
 }
 
-type HTTPSourceOptions struct {
+type flagsHTTPSourceOptions struct {
         URL                 string            `json:"url" mapstructure:"url"`
         TokenLiteral        string            `json:"token" mapstructure:"token"`
         TokenEnv            string            `json:"token_env" mapstructure:"token_env"`
@@ -439,18 +590,18 @@ type HTTPSourceOptions struct {
         EvalContext         map[string]string `json:"context" mapstructure:"context"`
 }
 
-func (o *HTTPSourceOptions) Token() string <span class="cov0" title="0">{
+func (o *flagsHTTPSourceOptions) Token() string <span class="cov0" title="0">{
         if o.TokenEnv != "" </span><span class="cov0" title="0">{
                 return os.Getenv(o.TokenEnv)
         }</span>
         <span class="cov0" title="0">return o.TokenLiteral</span>
 }
 
-func (o *HTTPSourceOptions) PollInterval() time.Duration <span class="cov0" title="0">{
+func (o *flagsHTTPSourceOptions) PollInterval() time.Duration <span class="cov0" title="0">{
         return time.Duration(o.PollIntervalSeconds) * time.Second
 }</span>
 
-func (o *HTTPSourceOptions) Validate() error <span class="cov0" title="0">{
+func (o *flagsHTTPSourceOptions) Validate() error <span class="cov0" title="0">{
         if o.URL == "" </span><span class="cov0" title="0">{
                 return errors.New("missing url")
         }</span>
@@ -461,7 +612,7 @@ func (o *HTTPSourceOptions) Validate() error <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package orchestrator
+		<pre class="file" id="file9" style="display: none">package orchestrator
 
 import (
         "context"
@@ -494,7 +645,7 @@ func (f *FlagInjector) Process(_ context.Context, input map[string]interface{}) 
 }
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package orchestrator
+		<pre class="file" id="file10" style="display: none">package orchestrator
 
 import (
         "context"
@@ -583,7 +734,7 @@ func (o *Orchestrator) RunOnce(ctx context.Context, input map[string]interface{}
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package orchestrator
+		<pre class="file" id="file11" style="display: none">package orchestrator
 
 import (
         "context"
@@ -626,7 +777,7 @@ func NewFlagInjectorFromConfig(ctx context.Context, raw map[string]interface{}) 
 }
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package orchestrator
+		<pre class="file" id="file12" style="display: none">package orchestrator
 
 import (
         "context"
@@ -656,7 +807,7 @@ func (o *Orchestrator) InstallPreprocessorsFromConfig(ctx context.Context, prepr
 }
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package outputs
+		<pre class="file" id="file13" style="display: none">package outputs
 
 import (
         "bytes"
@@ -767,7 +918,7 @@ func (h *httpOutput) WriteOutput(ctx context.Context, input map[string]interface
 }
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package outputs
+		<pre class="file" id="file14" style="display: none">package outputs
 
 import (
         "context"
@@ -806,7 +957,7 @@ func FromPlugin(ctx context.Context, block config.PluginBlock, stdout io.Writer)
 }
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">package outputs
+		<pre class="file" id="file15" style="display: none">package outputs
 
 import (
         "cloud.google.com/go/pubsub"
@@ -916,7 +1067,7 @@ func (w pubSubWriter) WriteOutput(parentCtx context.Context, input map[string]in
 }
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package outputs
+		<pre class="file" id="file16" style="display: none">package outputs
 
 import (
         "context"
@@ -946,25 +1097,35 @@ func (w *stdoutWriter) WriteOutput(_ context.Context, data map[string]interface{
 }
 </pre>
 		
-		<pre class="file" id="file14" style="display: none">package sources
+		<pre class="file" id="file17" style="display: none">package sources
 
 import (
         "context"
         "encoding/json"
         "errors"
+        "fmt"
         "net/http"
+        "os"
 )
 
 type HTTPOptions struct {
         Addr      string `mapstructure:"addr"`
         MetaField string `mapstructure:"meta_field"`
+        UseEnv    bool   `mapstructure:"use_env,omitempty"`
 }
 
-func (opts *HTTPOptions) Validate() error <span class="cov0" title="0">{
-        if opts.Addr == "" </span><span class="cov0" title="0">{
+func (opts *HTTPOptions) Validate() error <span class="cov10" title="2">{
+        if opts.UseEnv </span><span class="cov1" title="1">{
+                port := os.Getenv("PORT")
+                if port == "" </span><span class="cov1" title="1">{
+                        port = "8080"
+                }</span>
+                <span class="cov1" title="1">opts.Addr = fmt.Sprintf("0.0.0.0:%s", port)</span>
+        }
+        <span class="cov10" title="2">if opts.Addr == "" </span><span class="cov1" title="1">{
                 return errors.New("addr is required")
         }</span>
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov1" title="1">return nil</span>
 }
 
 type httpEventSource struct {
@@ -974,7 +1135,7 @@ type httpEventSource struct {
         server        *http.Server
 }
 
-func NewHTTPEventSource(opts HTTPOptions) EventSource <span class="cov8" title="1">{
+func NewHTTPEventSource(opts HTTPOptions) EventSource <span class="cov1" title="1">{
         return &amp;httpEventSource{
                 Addr:          opts.Addr,
                 MetadataField: opts.MetaField,
@@ -982,11 +1143,11 @@ func NewHTTPEventSource(opts HTTPOptions) EventSource <span class="cov8" title="
         }
 }</span>
 
-func (h *httpEventSource) Start(ctx context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov8" title="1">{
+func (h *httpEventSource) Start(ctx context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov1" title="1">{
         mux := http.NewServeMux()
 
         //goland:noinspection GoUnhandledErrorResult
-        mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) </span><span class="cov8" title="1">{
+        mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) </span><span class="cov1" title="1">{
                 defer r.Body.Close()
 
                 // get input from body
@@ -996,7 +1157,7 @@ func (h *httpEventSource) Start(ctx context.Context) (&lt;-chan map[string]inter
                         return
                 }</span>
 
-                <span class="cov8" title="1">if h.MetadataField != "" </span><span class="cov8" title="1">{
+                <span class="cov1" title="1">if h.MetadataField != "" </span><span class="cov1" title="1">{
                         input[h.MetadataField] = map[string]interface{}{
                                 "method":       r.Method,
                                 "path":         r.URL.Path,
@@ -1006,8 +1167,8 @@ func (h *httpEventSource) Start(ctx context.Context) (&lt;-chan map[string]inter
                         }
                 }</span>
 
-                <span class="cov8" title="1">select </span>{
-                case h.events &lt;- input:<span class="cov8" title="1">
+                <span class="cov1" title="1">select </span>{
+                case h.events &lt;- input:<span class="cov1" title="1">
                         w.WriteHeader(http.StatusAccepted)
                         break</span>
                 default:<span class="cov0" title="0">
@@ -1016,26 +1177,26 @@ func (h *httpEventSource) Start(ctx context.Context) (&lt;-chan map[string]inter
 
         })
 
-        <span class="cov8" title="1">h.server = &amp;http.Server{
+        <span class="cov1" title="1">h.server = &amp;http.Server{
                 Addr:    h.Addr,
                 Handler: mux,
         }
-        go func() </span><span class="cov8" title="1">{
+        go func() </span><span class="cov1" title="1">{
                 &lt;-ctx.Done()
                 _ = h.server.Shutdown(context.Background())
         }</span>()
 
-        <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{
+        <span class="cov1" title="1">go func() </span><span class="cov1" title="1">{
                 _ = h.server.ListenAndServe()
         }</span>()
 
-        <span class="cov8" title="1">go func() </span><span class="cov8" title="1">{
+        <span class="cov1" title="1">go func() </span><span class="cov1" title="1">{
                 &lt;-ctx.Done()
                 _ = h.server.Shutdown(context.Background())
                 close(h.events)
         }</span>()
 
-        <span class="cov8" title="1">return h.events, nil</span>
+        <span class="cov1" title="1">return h.events, nil</span>
 }
 
 func (h *httpEventSource) Close() error <span class="cov0" title="0">{
@@ -1043,7 +1204,7 @@ func (h *httpEventSource) Close() error <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file15" style="display: none">package sources
+		<pre class="file" id="file18" style="display: none">package sources
 
 import "context"
 
@@ -1102,7 +1263,7 @@ func (e *errorEventSource) Close() error <span class="cov1" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file16" style="display: none">package sources
+		<pre class="file" id="file19" style="display: none">package sources
 
 import (
         "context"
@@ -1112,7 +1273,7 @@ import (
         "github.com/tommed/ducto-orchestrator/internal/config"
 )
 
-func FromPlugin(ctx context.Context, block config.PluginBlock, stdin io.Reader) (EventSource, error) <span class="cov10" title="6">{
+func FromPlugin(_ context.Context, block config.PluginBlock, stdin io.Reader) (EventSource, error) <span class="cov10" title="6">{
         switch block.Type </span>{
         case "stdin":<span class="cov7" title="4">
                 return NewStdinEventSource(stdin), nil</span>
@@ -1137,7 +1298,7 @@ func FromPlugin(ctx context.Context, block config.PluginBlock, stdin io.Reader) 
 }
 </pre>
 		
-		<pre class="file" id="file17" style="display: none">package sources
+		<pre class="file" id="file20" style="display: none">package sources
 
 import (
         "context"

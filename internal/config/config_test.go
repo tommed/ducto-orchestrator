@@ -29,19 +29,19 @@ func TestDecode_Success(t *testing.T) {
 	assert.Equal(t, "_http", opts.MetaField)
 }
 
-func TestLoad_InvalidPath(t *testing.T) {
-	_, err := LoadFromPath("testdata/does-not-exist.yaml")
+func TestParseConfig_InvalidPath(t *testing.T) {
+	_, err := ParseConfig("testdata/does-not-exist.yaml")
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "read config file:")
+	assert.Contains(t, err.Error(), "no such file or directory")
 }
 
-func TestLoad_InvalidYAML(t *testing.T) {
+func TestParseConfig_InvalidYAML(t *testing.T) {
 	tmp := writeTempFile(t, []byte(`{ invalid_yaml`))
 	defer os.Remove(tmp)
 
-	_, err := LoadFromPath(tmp)
+	_, err := ParseConfig(tmp)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "parse config: yaml:")
+	assert.Contains(t, err.Error(), "decode config: yaml:")
 }
 
 //goland:noinspection GoUnhandledErrorResult
@@ -49,15 +49,18 @@ func TestLoad_ProgramPathResolution(t *testing.T) {
 	programPath := "prog.json"
 	tmpCfg := []byte(fmt.Sprintf("program_file: '%s'", programPath))
 	tmpFile := writeTempFile(t, tmpCfg)
+	tmpDir := filepath.Dir(tmpFile)
 	defer os.Remove(tmpFile)
 
 	t.Run("no program file", func(t *testing.T) {
-		_, err := LoadFromPath(tmpFile)
+		cfg, err := ParseConfig(tmpFile)
+		assert.NoError(t, err)
+		err = FinalizeConfig(cfg, tmpDir)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "no such file or directory")
 	})
 
-	fullProgramPath := filepath.Join(filepath.Dir(tmpFile), programPath)
+	fullProgramPath := filepath.Join(tmpDir, programPath)
 	programJSON, _ := json.Marshal(transform.Program{
 		Version: 1,
 		Instructions: []transform.Instruction{
@@ -73,8 +76,9 @@ func TestLoad_ProgramPathResolution(t *testing.T) {
 	defer os.Remove(fullProgramPath)
 
 	t.Run("with program file", func(t *testing.T) {
-		cfg, err := LoadFromPath(tmpFile)
+		cfg, err := ParseConfig(tmpFile)
 		assert.NoError(t, err)
+		assert.NoError(t, FinalizeConfig(cfg, tmpDir))
 		assert.Equal(t, "", cfg.ProgramFile)
 		assert.NotNil(t, "", cfg.Program)
 	})

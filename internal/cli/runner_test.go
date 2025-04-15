@@ -41,7 +41,7 @@ func TestRun_CoreCases(t *testing.T) {
 			name:           "no program in config",
 			args:           []string{"--config", "../../testdata/no_program.yaml"},
 			expectCode:     1,
-			expectInStdErr: "no program defined in config",
+			expectInStdErr: "no program or program_file specified",
 		},
 		{
 			name:           "invalid program path",

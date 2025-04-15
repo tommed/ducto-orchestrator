@@ -55,7 +55,7 @@ func TestFromPlugin(t *testing.T) {
 				assert.NotEmpty(t, writer.opts.URL, "URL was empty")
 				assert.NotEmpty(t, writer.opts.Method, "Method was empty")
 				assert.NotEmpty(t, writer.opts.EnvToken, "EnvToken was empty")
-				assert.NotNil(t, writer.client, "Client was nil")
+				assert.NotNil(t, writer.client, "client was nil")
 				return nil
 			},
 			wantErr: assert.NoError,

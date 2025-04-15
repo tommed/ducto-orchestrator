@@ -8,7 +8,7 @@ import (
 	"github.com/tommed/ducto-orchestrator/internal/config"
 )
 
-func FromPlugin(ctx context.Context, block config.PluginBlock, stdin io.Reader) (EventSource, error) {
+func FromPlugin(_ context.Context, block config.PluginBlock, stdin io.Reader) (EventSource, error) {
 	switch block.Type {
 	case "stdin":
 		return NewStdinEventSource(stdin), nil
