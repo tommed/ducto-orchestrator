@@ -7,6 +7,7 @@ import (
 	"github.com/tommed/ducto-orchestrator/internal/outputs"
 	"github.com/tommed/ducto-orchestrator/internal/sources"
 	"io"
+	"os"
 
 	"github.com/tommed/ducto-orchestrator/internal/config"
 	"github.com/tommed/ducto-orchestrator/internal/orchestrator"
@@ -25,6 +26,9 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer, cfgLoader con
 	if err := fs.Parse(args); err != nil {
 		fmt.Fprintf(stderr, "failed to parse args: %v\n", err)
 		return 1
+	}
+	if configPath == "" {
+		configPath = os.Getenv("CONFIG_URI")
 	}
 	if configPath == "" {
 		fmt.Fprintln(stderr, "missing required --config path")

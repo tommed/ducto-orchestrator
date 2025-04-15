@@ -78,7 +78,7 @@ func TestLoad_ProgramPathResolution(t *testing.T) {
 	t.Run("with program file", func(t *testing.T) {
 		cfg, err := ParseConfig(tmpFile)
 		assert.NoError(t, err)
-		err = FinalizeConfig(cfg, tmpDir)
+		assert.NoError(t, FinalizeConfig(cfg, tmpDir))
 		assert.Equal(t, "", cfg.ProgramFile)
 		assert.NotNil(t, "", cfg.Program)
 	})

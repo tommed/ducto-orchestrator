@@ -13,13 +13,13 @@ LINTER_OPTS=--timeout=2m
 # General Targets
 # ----------------------
 
-.PHONY: all check ci lint test-unit test-e2e test-full coverage example-simplest clean build-all gcp-pubsub-emulator build-macos build-windows ducto-cloudrun
+.PHONY: all check ci lint test-unit test-e2e test-full coverage example-simplest clean build-all gcp-pubsub-emulator build-macos build-windows build-cloudrun
 
 all: check
 
 check: lint test-full coverage
 
-build-all: build-macos build-windows ducto-cloudrun
+build-all: build-macos build-windows build-cloudrun
 
 ci: check build-all
 
@@ -80,6 +80,6 @@ build-windows:
 	@echo "==> Building Windows CLI"
 	GOOS=windows GOARCH=amd64 $(GO) build -o ducto-orchestrator.exe ./cmd/ducto-orchestrator
 
-ducto-cloudrun:
+build-cloudrun:
 	@echo "==> Building Cloud Run Service"
-    GOOS=linux GOARCH=amd64 $(GO) build -o ducto-orchestrator-cloudrun ./cmd/ducto-orchestrator-cloudrun
+	GOOS=linux GOARCH=amd64 $(GO) build -o ducto-orchestrator-cloudrun ./cmd/ducto-orchestrator-cloudrun
