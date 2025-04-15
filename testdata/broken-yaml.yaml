@@ -1,2 +1,0 @@
-source:
-  type: [ "not", "a", "string" ]   # ← type mismatch (string expected)

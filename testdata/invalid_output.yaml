@@ -1,7 +1,0 @@
-source:
-  type: stdin
-  
-output:
-  type: not-a-real-writer
-
-program_file: valid_program.json

@@ -1,8 +1,0 @@
-source:
-  type: not-a-real-source
-  config: {}
-output:
-  type: stdout
-  config: {}
-
-program_file: valid_program.json

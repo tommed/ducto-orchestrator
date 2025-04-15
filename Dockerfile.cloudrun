@@ -1,4 +1,0 @@
-FROM gcr.io/distroless/static-debian11
-COPY ducto-orchestrator-cloudrun /ducto-orchestrator-cloudrun
-RUN chmod +x /ducto-orchestrator-cloudrun
-ENTRYPOINT ["/ducto-orchestrator-cloudrun"]

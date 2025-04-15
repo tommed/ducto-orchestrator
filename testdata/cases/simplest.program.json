@@ -1,6 +1,0 @@
-{
-  "version": 1,
-  "instructions": [
-    { "op": "set", "key": "greeting", "value": "hello" }
-  ]
-}
