@@ -31,7 +31,7 @@ func (opts *HTTPOptions) Validate() error {
 
 type httpEventSource struct {
 	Addr          string // e.g., ":8080"
-	MetadataField string // e.g., "_http_meta" (empty string disables)
+	MetadataField string // e.g., "_http" (empty string disables)
 	events        chan map[string]interface{}
 	server        *http.Server
 }

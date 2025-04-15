@@ -12,7 +12,8 @@ program_file: gs://ducto-public/02-gcs_program.json
 source:
   type: http
   config:
-    use_env: true # Supports Cloud Run's PORT env rather than using `addr`
+    meta_field: _http
+    use_env: true # Awareness of Cloud Run's `PORT` env for addr binding
 
 output:
   type: stdout

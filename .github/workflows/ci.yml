@@ -93,16 +93,18 @@ jobs:
         with: {go-version: '1.24'}
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+      - uses: google-github-actions/auth@v2
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          project_id: 'testsandbox-3cb3f'
+          credentials_json: ${{ secrets.GOOGLE_GCP_CREDENTIALS }}
 
       - name: Build and push Cloud Run image
         run: |
-          docker build -f Dockerfile.cloudrun -t ghcr.io/${{ github.repository }}/ducto-orchestrator-cloudrun:${{ github.run_number }} .
-          docker tag ghcr.io/${{ github.repository }}/ducto-orchestrator-cloudrun:${{ github.run_number }} ghcr.io/${{ github.repository }}/ducto-orchestrator-cloudrun:latest
-          docker push ghcr.io/${{ github.repository }}/ducto-orchestrator-cloudrun:${{ github.run_number }}
-          docker push ghcr.io/${{ github.repository }}/ducto-orchestrator-cloudrun:latest
+          gcloud auth configure-docker ${{ env.REPO_DOMAIN }}
+          docker build -f Dockerfile.cloudrun -t ${{ env.REPO }}:${{ github.run_number }} .
+          docker tag ${{ env.REPO }}:${{ github.run_number }} ${{ env.REPO }}:latest
+          docker push ${{ env.REPO }}:${{ github.run_number }}
+          docker push ${{ env.REPO }}:latest
+        env:
+          REPO_DOMAIN: europe-west2-docker.pkg.dev
+          REPO: europe-west2-docker.pkg.dev/testsandbox-3cb3f/ducto-docker/ducto-orchestrator-cloudrun
