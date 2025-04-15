@@ -9,19 +9,10 @@
 
 Ducto Orchestrator is versioned for obvious reasons. Here are the versions currently available:
 
-## 🟣 Latest Draft
-
-- No drafts at present
-
-## 🟢 Latest Stable
-
-- [v1](./spec-v1.md)
-
-##  🔘 Other Versions
-
-- No previous versions are available
+- [Orchestrator v1](./spec-v1.md)
 
 ---
 # Features
 
+- [Config. Loaders](./spec-config-loaders.md)
 - [Pub/Sub Output Writer](./spec-feat-output-pubsub.md)

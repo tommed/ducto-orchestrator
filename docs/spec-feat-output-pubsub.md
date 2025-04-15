@@ -1,3 +1,10 @@
+<!--suppress HtmlDeprecatedAttribute -->
+<p align="right">
+    <a href="https://github.com/tommed" title="See Project Ducto">
+        <img src="../assets/ducto-logo-small.png" alt="A part of Project Ducto"/>
+    </a>
+</p>
+
 # Pub/Sub Output Writer
 
 ## 🔧 Configuration Format (YAML or JSON)
