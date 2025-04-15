@@ -35,8 +35,8 @@ func TestFileLoader_UnsupportedExtension(t *testing.T) {
 	file := filepath.Join(temp, "config.unsupported")
 	assert.NoError(t, os.WriteFile(file, []byte("{}"), 0644))
 
-	_, err := config.LoadFromPath(file)
-	assert.ErrorContains(t, err, "unsupported config file extension")
+	_, err := config.ParseConfig(file)
+	assert.ErrorContains(t, err, "unsupported config extension")
 }
 
 func TestFileLoader_MissingConfigPath(t *testing.T) {

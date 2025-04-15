@@ -4,15 +4,25 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"os"
 )
 
 type HTTPOptions struct {
 	Addr      string `mapstructure:"addr"`
 	MetaField string `mapstructure:"meta_field"`
+	UseEnv    bool   `mapstructure:"use_env,omitempty"`
 }
 
 func (opts *HTTPOptions) Validate() error {
+	if opts.UseEnv {
+		port := os.Getenv("PORT")
+		if port == "" {
+			port = "8080"
+		}
+		opts.Addr = fmt.Sprintf("0.0.0.0:%s", port)
+	}
 	if opts.Addr == "" {
 		return errors.New("addr is required")
 	}

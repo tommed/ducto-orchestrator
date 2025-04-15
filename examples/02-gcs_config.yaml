@@ -1,0 +1,20 @@
+# NOTE: A copy of this example is hosted at:
+# > gs://ducto-public/02-gcs_config.yaml
+
+# For GCS, we use a GCS URI for the program
+program_file: gs://ducto-public/02-gcs_program.json
+
+# Or, we can define the program inline for convenience
+#program:
+#  version: 1
+#  instructions: []
+
+source:
+  type: http
+  config:
+    use_env: true # Supports Cloud Run's PORT env rather than using `addr`
+
+output:
+  type: stdout
+  config:
+    pretty: true

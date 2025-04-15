@@ -8,12 +8,26 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+//goland:noinspection GoUnhandledErrorResult
+func TestHTTPOptions_GCP(t *testing.T) {
+	_ = os.Unsetenv("PORT")
+	opts := &HTTPOptions{UseEnv: true}
+	assert.NoError(t, opts.Validate())
+	assert.Equal(t, "0.0.0.0:8080", opts.Addr)
+
+	_ = os.Setenv("PORT", "8081")
+	defer os.Unsetenv("PORT")
+	opts = &HTTPOptions{}
+	assert.Error(t, opts.Validate())
+}
 
 //goland:noinspection GoUnhandledErrorResult
 //goland:noinspection HttpUrlsUsage,GoUnhandledErrorResult
