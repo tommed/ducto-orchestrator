@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/stretchr/testify/assert"
 	"github.com/tommed/ducto-orchestrator/internal/cli"
+	"github.com/tommed/ducto-orchestrator/internal/config"
 	"io"
 	"testing"
 )
@@ -40,7 +41,7 @@ func TestRun_CoreCases(t *testing.T) {
 			name:           "no program in config",
 			args:           []string{"--config", "../../testdata/no_program.yaml"},
 			expectCode:     1,
-			expectInStdErr: "no DSL program or program_file defined",
+			expectInStdErr: "no program defined in config",
 		},
 		{
 			name:           "invalid program path",
@@ -88,7 +89,7 @@ func TestRun_CoreCases(t *testing.T) {
 			stdout := &bytes.Buffer{}
 			stderr := &bytes.Buffer{}
 
-			code := cli.Run(tt.args, stdin, stdout, stderr)
+			code := cli.Run(tt.args, stdin, stdout, stderr, &config.FileLoader{})
 
 			assert.Equal(t, tt.expectCode, code)
 

@@ -3,53 +3,23 @@ package config
 import (
 	"fmt"
 	"github.com/mitchellh/mapstructure"
-	"github.com/spf13/viper"
 	"github.com/tommed/ducto-dsl/transform"
 	"path/filepath"
 )
 
 type PluginBlock struct {
-	Type   string                 `mapstructure:"type"`
-	Config map[string]interface{} `mapstructure:"config"`
+	Type   string                 `json:"type" yaml:"type" mapstructure:"type"`
+	Config map[string]interface{} `json:"config" yaml:"config" mapstructure:"config"`
 }
 
 type Config struct {
-	Debug       bool               `mapstructure:"debug"`
-	Program     *transform.Program `mapstructure:"program"`
-	ProgramFile string             `mapstructure:"program_file"`
+	Debug       bool               `json:"debug" yaml:"debug" mapstructure:"debug"`
+	Program     *transform.Program `json:"program" yaml:"program" mapstructure:"program"`
+	ProgramFile string             `json:"program_file" yaml:"program_file" mapstructure:"program_file"`
 
-	Preprocessors []PluginBlock `mapstructure:"preprocessors"`
-	Source        PluginBlock   `mapstructure:"source"`
-	Output        PluginBlock   `mapstructure:"output"`
-}
-
-func Load(path string) (*Config, error) {
-	absPath, err := filepath.Abs(path)
-	if err != nil {
-		return nil, fmt.Errorf("get abs path: %w", err)
-	}
-
-	v := viper.New()
-	v.SetConfigFile(absPath)
-
-	if err := v.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("failed to read config: %w", err)
-	}
-
-	var cfg Config
-	if err := v.Unmarshal(&cfg); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
-	}
-
-	// Change relative paths so they are relative to this config file NOT the current working directory.
-	// This is the behaviour of the least surprise.
-	cfgDir := filepath.Dir(absPath)
-	if cfg.ProgramFile != "" && !filepath.IsAbs(cfg.ProgramFile) {
-		cfg.ProgramFile = filepath.Join(cfgDir, cfg.ProgramFile)
-	}
-	SetConfigFilePath(absPath)
-
-	return &cfg, nil
+	Preprocessors []PluginBlock `json:"preprocessors" yaml:"preprocessors" mapstructure:"preprocessors"`
+	Source        PluginBlock   `json:"source" yaml:"source" mapstructure:"source"`
+	Output        PluginBlock   `json:"output" yaml:"output" mapstructure:"output"`
 }
 
 var configDir string

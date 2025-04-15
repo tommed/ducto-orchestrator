@@ -1,9 +1,11 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tommed/ducto-dsl/transform"
 	"os"
 	"path/filepath"
 	"testing"
@@ -28,30 +30,54 @@ func TestDecode_Success(t *testing.T) {
 }
 
 func TestLoad_InvalidPath(t *testing.T) {
-	_, err := Load("testdata/does-not-exist.yaml")
+	_, err := LoadFromPath("testdata/does-not-exist.yaml")
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to read config")
+	assert.Contains(t, err.Error(), "read config file:")
 }
 
 func TestLoad_InvalidYAML(t *testing.T) {
 	tmp := writeTempFile(t, []byte(`{ invalid_yaml`))
 	defer os.Remove(tmp)
 
-	_, err := Load(tmp)
+	_, err := LoadFromPath(tmp)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "failed to read config")
+	assert.Contains(t, err.Error(), "parse config: yaml:")
 }
 
+//goland:noinspection GoUnhandledErrorResult
 func TestLoad_ProgramPathResolution(t *testing.T) {
-	programPath := "relative/prog.json"
-	tmpCfg := []byte(fmt.Sprintf("program_file: %s", programPath))
+	programPath := "prog.json"
+	tmpCfg := []byte(fmt.Sprintf("program_file: '%s'", programPath))
 	tmpFile := writeTempFile(t, tmpCfg)
 	defer os.Remove(tmpFile)
 
-	cfg, err := Load(tmpFile)
+	t.Run("no program file", func(t *testing.T) {
+		_, err := LoadFromPath(tmpFile)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "no such file or directory")
+	})
+
+	fullProgramPath := filepath.Join(filepath.Dir(tmpFile), programPath)
+	programJSON, _ := json.Marshal(transform.Program{
+		Version: 1,
+		Instructions: []transform.Instruction{
+			{
+				Op:    "set",
+				Key:   "field1",
+				Value: "test1",
+			},
+		},
+	})
+	err := os.WriteFile(fullProgramPath, programJSON, os.ModePerm)
 	assert.NoError(t, err)
-	assert.True(t, filepath.IsAbs(cfg.ProgramFile))
-	assert.Contains(t, cfg.ProgramFile, "relative/prog.json")
+	defer os.Remove(fullProgramPath)
+
+	t.Run("with program file", func(t *testing.T) {
+		cfg, err := LoadFromPath(tmpFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "", cfg.ProgramFile)
+		assert.NotNil(t, "", cfg.Program)
+	})
 }
 
 func TestDecode_Errors(t *testing.T) {
