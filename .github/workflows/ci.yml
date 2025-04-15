@@ -80,6 +80,7 @@ jobs:
           path: |
             docker-orchestrator-cloudrun
 
+      - run: rm gha-creds-*.json
       - name: Deploy Coverage HTML to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
