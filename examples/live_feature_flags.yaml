@@ -1,3 +1,4 @@
+#file: noinspection YAMLIncompatibleTypes
 # We can add -debug flag when running the orchestrator CLI to override this
 debug: false
 
@@ -7,7 +8,6 @@ preprocessors:
       # tags for this deployment
       tags:
         env: prod
-        group: beta
         region: UK
         customer: mps
       # remote web service to fetch feature flags
@@ -22,8 +22,29 @@ program:
   version: 1
   instructions:
     - op: set
-      key: was_here
-      value: true
+      key: greet
+      value: hello
+
+    # 3=current, 4=stable
+    - op: if
+      condition:
+        or:
+          - equals:
+              key: _flags.new_ui
+              value: 4
+          - equals:
+              key: _flags.new_ui
+              value: 3
+      then:
+        - op: set
+          key: ui.mode
+          value: current
+
+    # If it's not stable, we'll default to 'preview' (dev, alpha, beta)
+    - op: coalesce
+      key: ui.mode
+      value: preview
+
 
 # Source
 source:

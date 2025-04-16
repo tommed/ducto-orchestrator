@@ -8,11 +8,15 @@
         },
         "flags": {
           "stable_ui": {
+            "variants": {
+              "yes": true,
+              "no": false
+            },
             "rules": [
-              {"if": {"env": "prod"}, "value": true},
-              {"if": {"region": "canada"}, "value": true}
+              {"if": {"env": "prod"}, "variant": "yes"},
+              {"if": {"region": "canada"}, "variant": "yes"}
             ],
-            "enabled": false
+            "defaultVariant": "no"
           }
         }
       }
