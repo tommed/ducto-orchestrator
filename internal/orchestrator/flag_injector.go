@@ -21,9 +21,15 @@ func NewFlagInjector(store flagsdk.AnyStore, tags flagsdk.EvalContext) *FlagInje
 }
 
 func (f *FlagInjector) Process(_ context.Context, input map[string]interface{}) error {
-	res := map[string]bool{}
+	res := make(map[string]interface{})
 	for key := range f.store.AllFlags() {
-		res[key] = f.store.IsEnabled(key, f.tags)
+		flag, ok := f.store.Get(key)
+		if ok {
+			result := flag.Evaluate(f.tags)
+			if result.OK {
+				res[key] = result.Value
+			}
+		}
 	}
 
 	input["_flags"] = res

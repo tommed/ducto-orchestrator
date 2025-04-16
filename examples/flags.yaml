@@ -1,9 +1,15 @@
 beta:
-  enabled: true
+  variants:
+    yes: true
+    no: false
+  defaultVariant: yes
 
 new_ui:
+  variants:
+    yes: true
+    no: false
   rules:
     - if:
         env: prod
-      value: true
-  enabled: false
+      variant: yes
+  defaultVariant: no
