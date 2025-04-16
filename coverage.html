@@ -255,7 +255,7 @@ func WithSignalContext(parent context.Context) context.Context <span class="cov9
 func withSignalContextRaw(parent context.Context, signals ...os.Signal) context.Context <span class="cov10" title="10">{
         ctx, stop := signal.NotifyContext(parent, signals...)
 
-        go func() </span><span class="cov3" title="2">{
+        go func() </span><span class="cov7" title="5">{
                 &lt;-ctx.Done()
                 stop() // clean up signal handlers
         }</span>()
@@ -635,10 +635,16 @@ func NewFlagInjector(store flagsdk.AnyStore, tags flagsdk.EvalContext) *FlagInje
 }</span>
 
 func (f *FlagInjector) Process(_ context.Context, input map[string]interface{}) error <span class="cov8" title="1">{
-        res := map[string]bool{}
+        res := make(map[string]interface{})
         for key := range f.store.AllFlags() </span><span class="cov8" title="1">{
-                res[key] = f.store.IsEnabled(key, f.tags)
-        }</span>
+                flag, ok := f.store.Get(key)
+                if ok </span><span class="cov8" title="1">{
+                        result := flag.Evaluate(f.tags)
+                        if result.OK </span><span class="cov8" title="1">{
+                                res[key] = result.Value
+                        }</span>
+                }
+        }
 
         <span class="cov8" title="1">input["_flags"] = res
         return nil</span>
