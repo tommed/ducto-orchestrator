@@ -1,0 +1,27 @@
+
+# Accept data in from local port 8081
+source:
+  type: http
+  config:
+    addr: 127.0.0.1:8081
+
+# Write output to stdout
+output:
+  type: stdout
+  config:
+    pretty: true
+
+# Load the program from a local file - relative paths from this config file
+program_file: 03-all_live_program.json
+
+# Feature Flags from HTTP
+preprocessors:
+  - type: feature_flags
+    config:
+      tags_env: DUCTO_TAGS
+
+      provider:
+        type: http
+        url: http://localhost:8080/api/flags
+        token_env: OUR_TOKEN
+        poll_interval_seconds: 15
