@@ -15,6 +15,14 @@ type gcsLoader struct {
 	client *storage.Client
 }
 
+func MustCreateGCSLoader() Loader {
+	client, err := NewGCSLoader()
+	if err != nil {
+		panic(err)
+	}
+	return client
+}
+
 // NewGCSLoader builds a new Loader which supports `gs://` GCS URIs.
 func NewGCSLoader() (Loader, error) {
 	client, err := storage.NewClient(context.Background())

@@ -93,9 +93,9 @@
 				
 				<option value="file18">github.com/tommed/ducto-orchestrator/internal/sources/input.go (100.0%)</option>
 				
-				<option value="file19">github.com/tommed/ducto-orchestrator/internal/sources/plugin.go (54.5%)</option>
+				<option value="file19">github.com/tommed/ducto-orchestrator/internal/sources/plugin.go (57.1%)</option>
 				
-				<option value="file20">github.com/tommed/ducto-orchestrator/internal/sources/stdin.go (100.0%)</option>
+				<option value="file20">github.com/tommed/ducto-orchestrator/internal/sources/stdin.go (44.0%)</option>
 				
 				</select>
 			</div>
@@ -290,7 +290,7 @@ type Config struct {
 
 var configDir string
 
-func SetConfigFilePath(absPath string) <span class="cov9" title="11">{
+func SetConfigFilePath(absPath string) <span class="cov8" title="11">{
         configDir = filepath.Dir(absPath)
 }</span>
 
@@ -308,7 +308,7 @@ type Options interface {
         Validate() error
 }
 
-func Decode[T any](raw map[string]interface{}) (*T, error) <span class="cov10" title="13">{
+func Decode[T any](raw map[string]interface{}) (*T, error) <span class="cov10" title="17">{
         var target T
         dec, err := mapstructure.NewDecoder(&amp;mapstructure.DecoderConfig{
                 Result:  &amp;target,
@@ -317,15 +317,15 @@ func Decode[T any](raw map[string]interface{}) (*T, error) <span class="cov10" t
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov10" title="13">if err := dec.Decode(raw); err != nil </span><span class="cov3" title="2">{
+        <span class="cov10" title="17">if err := dec.Decode(raw); err != nil </span><span class="cov3" title="2">{
                 return nil, err
         }</span>
-        <span class="cov9" title="11">if val, ok := any(&amp;target).(Options); ok </span><span class="cov3" title="2">{
+        <span class="cov9" title="15">if val, ok := any(&amp;target).(Options); ok </span><span class="cov3" title="2">{
                 if err := val.Validate(); err != nil </span><span class="cov0" title="0">{
                         return nil, err
                 }</span>
         }
-        <span class="cov9" title="11">return &amp;target, nil</span>
+        <span class="cov9" title="15">return &amp;target, nil</span>
 }
 </pre>
 		
@@ -583,11 +583,10 @@ func NewStoreFromConfig(ctx context.Context, raw map[string]interface{}) (*flags
 }
 
 type flagsHTTPSourceOptions struct {
-        URL                 string            `json:"url" mapstructure:"url"`
-        TokenLiteral        string            `json:"token" mapstructure:"token"`
-        TokenEnv            string            `json:"token_env" mapstructure:"token_env"`
-        PollIntervalSeconds int               `json:"poll_interval_seconds" mapstructure:"poll_interval_seconds"`
-        EvalContext         map[string]string `json:"context" mapstructure:"context"`
+        URL                 string `json:"url" mapstructure:"url"`
+        TokenLiteral        string `json:"token" mapstructure:"token"`
+        TokenEnv            string `json:"token_env" mapstructure:"token_env"`
+        PollIntervalSeconds int    `json:"poll_interval_seconds" mapstructure:"poll_interval_seconds"`
 }
 
 func (o *flagsHTTPSourceOptions) Token() string <span class="cov0" title="0">{
@@ -617,12 +616,22 @@ func (o *flagsHTTPSourceOptions) Validate() error <span class="cov0" title="0">{
 import (
         "context"
         flagsdk "github.com/tommed/ducto-featureflags/sdk"
+        "os"
+        "strings"
 )
 
 type FlagInjectorOptions struct {
-        Tags     flagsdk.EvalContext     `json:"tags" mapstructure:"tags"`
+        RawTags  flagsdk.EvalContext     `json:"tags,omitempty" mapstructure:"tags,omitempty"`
+        TagsEnv  string                  `json:"tags_env,omitempty" mapstructure:"tags_env,omitempty"`
         Flags    map[string]flagsdk.Flag `json:"flags,omitempty" mapstructure:"flags,omitempty"`
         Provider map[string]interface{}  `json:"provider,omitempty" mapstructure:"provider,omitempty"`
+}
+
+func (o FlagInjectorOptions) Tags() flagsdk.EvalContext <span class="cov5" title="3">{
+        if o.TagsEnv != "" </span><span class="cov1" title="1">{
+                return parseTagsEnv(os.Getenv(o.TagsEnv))
+        }</span>
+        <span class="cov3" title="2">return o.RawTags</span>
 }
 
 type FlagInjector struct {
@@ -630,18 +639,35 @@ type FlagInjector struct {
         tags  flagsdk.EvalContext
 }
 
-func NewFlagInjector(store flagsdk.AnyStore, tags flagsdk.EvalContext) *FlagInjector <span class="cov8" title="1">{
+func NewFlagInjector(store flagsdk.AnyStore, tags flagsdk.EvalContext) *FlagInjector <span class="cov1" title="1">{
         return &amp;FlagInjector{store: store, tags: tags}
 }</span>
 
-func (f *FlagInjector) Process(_ context.Context, input map[string]interface{}) error <span class="cov8" title="1">{
-        res := map[string]bool{}
-        for key := range f.store.AllFlags() </span><span class="cov8" title="1">{
-                res[key] = f.store.IsEnabled(key, f.tags)
-        }</span>
+func (f *FlagInjector) Process(_ context.Context, input map[string]interface{}) error <span class="cov1" title="1">{
+        res := make(map[string]interface{})
+        for key := range f.store.AllFlags() </span><span class="cov1" title="1">{
+                flag, ok := f.store.Get(key)
+                if ok </span><span class="cov1" title="1">{
+                        result := flag.Evaluate(f.tags)
+                        if result.OK </span><span class="cov1" title="1">{
+                                res[key] = result.Value
+                        }</span>
+                }
+        }
 
-        <span class="cov8" title="1">input["_flags"] = res
+        <span class="cov1" title="1">input["_flags"] = res
         return nil</span>
+}
+
+func parseTagsEnv(env string) flagsdk.EvalContext <span class="cov5" title="3">{
+        out := flagsdk.EvalContext{}
+        for _, pair := range strings.Split(env, ";") </span><span class="cov10" title="9">{
+                kv := strings.SplitN(pair, "=", 2)
+                if len(kv) == 2 </span><span class="cov9" title="8">{
+                        out[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
+                }</span>
+        }
+        <span class="cov5" title="3">return out</span>
 }
 </pre>
 		
@@ -752,7 +778,8 @@ func NewFlagInjectorFromConfig(ctx context.Context, raw map[string]interface{}) 
         <span class="cov8" title="1">var store flagsdk.AnyStore
         switch </span>{
 
-        // 'Provider' is an inline definition of flags
+        // 'Provider' is a dynamic loader of feature flags
+        // For example:  NewFileProvider, or NewHTTPProvider
         case opts.Provider != nil:<span class="cov0" title="0">
                 reloadingStore, err := NewStoreFromConfig(ctx, opts.Provider)
                 if err != nil </span><span class="cov0" title="0">{
@@ -773,7 +800,7 @@ func NewFlagInjectorFromConfig(ctx context.Context, raw map[string]interface{}) 
                 return nil, fmt.Errorf("featureflags preprocessor requires either 'file' or inline 'flags'")</span>
         }
 
-        <span class="cov8" title="1">return NewFlagInjector(store, opts.Tags), nil</span>
+        <span class="cov8" title="1">return NewFlagInjector(store, opts.Tags()), nil</span>
 }
 </pre>
 		
@@ -1130,7 +1157,7 @@ func (opts *HTTPOptions) Validate() error <span class="cov10" title="2">{
 
 type httpEventSource struct {
         Addr          string // e.g., ":8080"
-        MetadataField string // e.g., "_http_meta" (empty string disables)
+        MetadataField string // e.g., "_http" (empty string disables)
         events        chan map[string]interface{}
         server        *http.Server
 }
@@ -1276,7 +1303,11 @@ import (
 func FromPlugin(_ context.Context, block config.PluginBlock, stdin io.Reader) (EventSource, error) <span class="cov10" title="6">{
         switch block.Type </span>{
         case "stdin":<span class="cov7" title="4">
-                return NewStdinEventSource(stdin), nil</span>
+                opts, err := config.Decode[StdinOptions](block.Config)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov7" title="4">return NewStdinEventSource(stdin, *opts), nil</span>
 
         case "values":<span class="cov1" title="1">
                 opts, err := config.Decode[ValuesOptions](block.Config)
@@ -1301,33 +1332,70 @@ func FromPlugin(_ context.Context, block config.PluginBlock, stdin io.Reader) (E
 		<pre class="file" id="file20" style="display: none">package sources
 
 import (
+        "bufio"
         "context"
         "encoding/json"
         "fmt"
         "io"
 )
 
-type stdinEventSource struct {
-        reader io.Reader
+type StdinOptions struct {
+        UseJSONL bool `json:"use_jsonl" mapstructure:"use_jsonl"`
 }
 
-func NewStdinEventSource(stdin io.Reader) EventSource <span class="cov8" title="7">{
+type stdinEventSource struct {
+        reader   io.Reader
+        useJSONL bool
+}
+
+func NewStdinEventSource(stdin io.Reader, opts StdinOptions) EventSource <span class="cov8" title="7">{
         return &amp;stdinEventSource{
-                reader: stdin,
+                reader:   stdin,
+                useJSONL: opts.UseJSONL,
         }
 }</span>
 
-// Start reads exactly one JSON object from stdin and then closes the stream.
+// Start reads from stdin either as a single JSON object or as a stream of JSONL events.
 func (s *stdinEventSource) Start(ctx context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov7" title="5">{
-        // Read input
+        if s.useJSONL </span><span class="cov0" title="0">{
+                return s.readJSONLStream(ctx)
+        }</span> else<span class="cov7" title="5"> {
+                return s.readSingleJSON(ctx)
+        }</span>
+}
+
+func (s *stdinEventSource) readSingleJSON(ctx context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov7" title="5">{
         var input map[string]interface{}
         decoder := json.NewDecoder(s.reader)
         if err := decoder.Decode(&amp;input); err != nil </span><span class="cov3" title="2">{
                 return nil, fmt.Errorf("failed to decode stdin input: %w", err)
         }</span>
-
-        // Delegate to valuesEventSource without exporting it
         <span class="cov5" title="3">return NewValuesEventSourceRaw(input).Start(ctx)</span>
+}
+
+func (s *stdinEventSource) readJSONLStream(ctx context.Context) (&lt;-chan map[string]interface{}, error) <span class="cov0" title="0">{
+        ch := make(chan map[string]interface{})
+        go func() </span><span class="cov0" title="0">{
+                defer close(ch)
+                scanner := bufio.NewScanner(s.reader)
+                for scanner.Scan() </span><span class="cov0" title="0">{
+                        select </span>{
+                        case &lt;-ctx.Done():<span class="cov0" title="0">
+                                return</span>
+                        default:<span class="cov0" title="0"></span>
+                        }
+
+                        <span class="cov0" title="0">var obj map[string]interface{}
+                        line := scanner.Bytes()
+                        if err := json.Unmarshal(line, &amp;obj); err != nil </span><span class="cov0" title="0">{
+                                // skip invalid lines but consider logging
+                                continue</span>
+                        }
+
+                        <span class="cov0" title="0">ch &lt;- obj</span>
+                }
+        }()
+        <span class="cov0" title="0">return ch, nil</span>
 }
 
 func (s *stdinEventSource) Close() error <span class="cov10" title="9">{

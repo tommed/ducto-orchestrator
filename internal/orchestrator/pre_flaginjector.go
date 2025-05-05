@@ -16,7 +16,8 @@ func NewFlagInjectorFromConfig(ctx context.Context, raw map[string]interface{}) 
 	var store flagsdk.AnyStore
 	switch {
 
-	// 'Provider' is an inline definition of flags
+	// 'Provider' is a dynamic loader of feature flags
+	// For example:  NewFileProvider, or NewHTTPProvider
 	case opts.Provider != nil:
 		reloadingStore, err := NewStoreFromConfig(ctx, opts.Provider)
 		if err != nil {
@@ -37,5 +38,5 @@ func NewFlagInjectorFromConfig(ctx context.Context, raw map[string]interface{}) 
 		return nil, fmt.Errorf("featureflags preprocessor requires either 'file' or inline 'flags'")
 	}
 
-	return NewFlagInjector(store, opts.Tags), nil
+	return NewFlagInjector(store, opts.Tags()), nil
 }

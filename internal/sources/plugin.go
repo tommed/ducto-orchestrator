@@ -11,7 +11,11 @@ import (
 func FromPlugin(_ context.Context, block config.PluginBlock, stdin io.Reader) (EventSource, error) {
 	switch block.Type {
 	case "stdin":
-		return NewStdinEventSource(stdin), nil
+		opts, err := config.Decode[StdinOptions](block.Config)
+		if err != nil {
+			return nil, err
+		}
+		return NewStdinEventSource(stdin, *opts), nil
 
 	case "values":
 		opts, err := config.Decode[ValuesOptions](block.Config)

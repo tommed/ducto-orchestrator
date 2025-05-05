@@ -1,0 +1,19 @@
+# This config supports multiple records, one JSON object per line.
+# This is JSONL format. It writes JSONL to the output destination
+# once transformed.
+
+# JSONL input
+source:
+  type: stdin
+  config:
+    jsonl: true
+
+# JSONL output (pretty: false)
+output:
+  type: stdout
+
+# Pointless program
+program:
+  version: 1
+  instructions:
+    - op: noop

@@ -37,6 +37,7 @@ func TestParseConfig_InvalidPath(t *testing.T) {
 
 func TestParseConfig_InvalidYAML(t *testing.T) {
 	tmp := writeTempFile(t, []byte(`{ invalid_yaml`))
+	//goland:noinspection GoUnhandledErrorResult
 	defer os.Remove(tmp)
 
 	_, err := ParseConfig(tmp)
@@ -102,4 +103,62 @@ func writeTempFile(t *testing.T, content []byte) string {
 	tmp := filepath.Join(os.TempDir(), fmt.Sprintf("test-%d.yaml", time.Now().UnixNano()))
 	require.NoError(t, os.WriteFile(tmp, content, 0644))
 	return tmp
+}
+
+func TestResolvePath(t *testing.T) {
+	type args struct {
+		configDir string
+		relOrAbs  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{
+			name: "no config directory set",
+			args: args{
+				configDir: "",
+				relOrAbs:  "./docs/doc1.md",
+			},
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				if err == nil {
+					return false
+				}
+				return err.Error() == "no config directory set"
+			},
+		},
+		{
+			name: "rel path",
+			args: args{
+				configDir: "/tmp",
+				relOrAbs:  "docs/doc1.md",
+			},
+			want: "/tmp/docs/doc1.md",
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				return err == nil
+			},
+		},
+		{
+			name: "abs path",
+			args: args{
+				configDir: "/var/run",
+				relOrAbs:  "/tmp/docs/doc1.md",
+			},
+			want: "/tmp/docs/doc1.md",
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				return err == nil
+			},
+		},
+	}
+	for _, tt := range tests {
+		// NOT run in parallel as setting configDir in each iteration
+		configDir = tt.args.configDir
+		got, err := ResolvePath(tt.args.relOrAbs)
+		if !tt.wantErr(t, err, fmt.Sprintf("ResolvePath(%v)", tt.args.relOrAbs)) {
+			continue
+		}
+		assert.Equal(t, tt.want, got, "ResolvePath[%s](%v) is not '%s'", tt.name, tt.args.relOrAbs, tt.want)
+	}
 }

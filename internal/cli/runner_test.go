@@ -50,6 +50,12 @@ func TestRun_CoreCases(t *testing.T) {
 			expectInStdErr: "failed to read program",
 		},
 		{
+			name:           "no program defined",
+			args:           []string{"--config", "../../testdata/no_program_defined.yaml"},
+			expectCode:     1,
+			expectInStdErr: "no program or program_file specified",
+		},
+		{
 			name:           "invalid source",
 			args:           []string{"--config", "../../testdata/invalid_source.yaml"},
 			expectCode:     1,

@@ -51,11 +51,10 @@ func NewStoreFromConfig(ctx context.Context, raw map[string]interface{}) (*flags
 }
 
 type flagsHTTPSourceOptions struct {
-	URL                 string            `json:"url" mapstructure:"url"`
-	TokenLiteral        string            `json:"token" mapstructure:"token"`
-	TokenEnv            string            `json:"token_env" mapstructure:"token_env"`
-	PollIntervalSeconds int               `json:"poll_interval_seconds" mapstructure:"poll_interval_seconds"`
-	EvalContext         map[string]string `json:"context" mapstructure:"context"`
+	URL                 string `json:"url" mapstructure:"url"`
+	TokenLiteral        string `json:"token" mapstructure:"token"`
+	TokenEnv            string `json:"token_env" mapstructure:"token_env"`
+	PollIntervalSeconds int    `json:"poll_interval_seconds" mapstructure:"poll_interval_seconds"`
 }
 
 func (o *flagsHTTPSourceOptions) Token() string {

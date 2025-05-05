@@ -34,9 +34,7 @@ func TestGCSLoader_Load_PublicExample(t *testing.T) {
 		t.Skip("skipping test in short mode.")
 	}
 
-	loader, err := NewGCSLoader()
-	require.NoError(t, err)
-
+	loader := MustCreateGCSLoader()
 	ctx := context.Background()
 	cfg, err := loader.Load(ctx, "gs://ducto-public/02-gcs_config.yaml")
 	require.NoError(t, err)
