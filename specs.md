@@ -14,5 +14,6 @@ Ducto Orchestrator is versioned for obvious reasons. Here are the versions curre
 ---
 # Features
 
+- [Stdin JSONL Support](./spec-stdin-jsonl.md)
 - [Config. Loaders](./spec-config-loaders.md)
 - [Pub/Sub Output Writer](./spec-feat-output-pubsub.md)
