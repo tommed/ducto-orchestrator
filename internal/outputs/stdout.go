@@ -7,7 +7,7 @@ import (
 )
 
 type StdoutOptions struct {
-	Pretty bool `mapstructure:"pretty"`
+	Pretty bool `json:"pretty" mapstructure:"pretty"`
 }
 
 type stdoutWriter struct {

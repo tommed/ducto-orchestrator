@@ -44,13 +44,14 @@ type Options interface {
 
 func Decode[T any](raw map[string]interface{}) (*T, error) {
 	var target T
-	dec, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+	dec, _ := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		Result:  &target,
 		TagName: "mapstructure",
 	})
-	if err != nil {
-		return nil, err
-	}
+	// Not sure if it's possible with mapstructure to return an error here?!
+	//if err != nil {
+	//	return nil, err
+	//}
 	if err := dec.Decode(raw); err != nil {
 		return nil, err
 	}

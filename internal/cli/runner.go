@@ -44,11 +44,12 @@ func Run(args []string, stdin io.Reader, stdout, stderr io.Writer, cfgLoader con
 		return 1
 	}
 
+	// NOTE: for now, unreachable code based on loader
 	// Load program (the cfg loader will have already set this inline for us)
-	if cfg.Program == nil {
-		fmt.Fprintln(stderr, "no DSL program or program_file defined")
-		return 1
-	}
+	//if cfg.Program == nil {
+	//	fmt.Fprintln(stderr, "no DSL program or program_file defined")
+	//	return 1
+	//}
 
 	// Debug can come from cli flag or config, if any are true
 	if debug {

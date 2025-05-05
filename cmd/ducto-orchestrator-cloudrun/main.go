@@ -7,9 +7,5 @@ import (
 )
 
 func main() {
-	loader, err := config.NewGCSLoader() // supports `gs://` paths
-	if err != nil {
-		panic(err)
-	}
-	os.Exit(cli.Run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr, loader))
+	os.Exit(cli.Run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr, config.MustCreateGCSLoader()))
 }
